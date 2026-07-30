@@ -1,0 +1,5 @@
+export const GAME_START_HOUR = 2;
+export const GAME_START_MINUTE = 0;
+export const REAL_MS_PER_GAME_HOUR = 30 * 1000;
+export const GAME_SHIFT_HOURS = 4;
+export const GAME_SHIFT_DURATION_MS = GAME_SHIFT_HOURS * REAL_MS_PER_GAME_HOUR;

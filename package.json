@@ -1,5 +1,5 @@
 {
-  "name": "nfact-teens-starter",
+  "name": "doppleganger",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -22,11 +22,13 @@
     "@supabase/supabase-js": "^2.110.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "three": "^0.185.1",
     "wouter": "^3.10.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.4",
     "supabase": "^2.109.1",
     "typescript": "^5.9.3",

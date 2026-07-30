@@ -1,0 +1,40 @@
+.game-controls {
+  display: none;
+  width: 144px;
+  height: 108px;
+  margin: 16px auto 0;
+  grid-template: repeat(2, 48px) / repeat(3, 48px);
+  gap: 6px;
+}
+
+.game-controls button {
+  border: 1px solid #60665f;
+  border-radius: 3px;
+  color: #d6d0b8;
+  background: #292d2a;
+  box-shadow: 0 3px #111311;
+  touch-action: none;
+}
+
+.game-controls button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px #111311;
+}
+
+.control-up { grid-area: 1 / 2; }
+.control-left { grid-area: 2 / 1; }
+.control-down { grid-area: 2 / 2; }
+.control-right { grid-area: 2 / 3; }
+.control-sprint {
+  grid-area: 1 / 1;
+  font-size: 9px;
+}
+
+.control-jump {
+  grid-area: 1 / 3;
+  font-size: 9px;
+}
+
+@media (pointer: coarse), (max-width: 620px) {
+  .game-controls { display: grid; }
+}

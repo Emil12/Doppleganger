@@ -1,0 +1,69 @@
+.shift-summary {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #e9e3c9;
+  background: #030504;
+  font-family: "Courier New", monospace;
+}
+
+.shift-summary__content {
+  width: min(360px, 78%);
+  text-align: center;
+}
+
+.shift-summary__eyebrow {
+  color: #b94e46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+.shift-summary h2 {
+  margin: 12px 0 26px;
+  font-size: clamp(20px, 4vw, 34px);
+  letter-spacing: 0.12em;
+}
+
+.shift-summary dl {
+  margin: 0 0 28px;
+  border-top: 1px solid rgba(225, 219, 193, 0.22);
+}
+
+.shift-summary dl div {
+  padding: 12px 2px;
+  border-bottom: 1px solid rgba(225, 219, 193, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shift-summary dt {
+  color: #8f9990;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.shift-summary dd {
+  margin: 0;
+  color: #e3c86f;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.shift-summary button {
+  padding: 11px 17px;
+  border: 1px solid rgba(227, 200, 111, 0.55);
+  color: #e3c86f;
+  background: #101511;
+  font: 700 10px "Courier New", monospace;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.shift-summary button:hover {
+  color: #101511;
+  background: #e3c86f;
+}

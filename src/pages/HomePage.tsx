@@ -1,13 +1,27 @@
+import { Link } from 'wouter';
+import { GasStationGame } from '../components/GasStationGame';
+import '../game.css';
+
 export function HomePage() {
   return (
-    <main className="container">
-      <section className="hello">
-        <h1>Привет! 🚀</h1>
-        <p>Это твой проект. Пока тут пусто — самое интересное впереди.</p>
-        <p className="hello__hint">
-          Открой Codex и опиши свою идею — этот экран станет твоим приложением.
-        </p>
-      </section>
+    <main className="game-page">
+      <header className="game-header">
+        <div>
+          <p className="eyebrow">HIGHWAY 09 · 2:13 AM</p>
+          <h1>DOPPLEGANGER</h1>
+        </div>
+        <div className="header-actions">
+          <span className="quality-badge">NIGHT SHIFT · OPEN</span>
+          <Link href="/auth" className="account-link">ACCOUNT</Link>
+        </div>
+      </header>
+
+      <GasStationGame />
+
+      <footer className="game-footer">
+        <span>WASD · MOUSE TO LOOK · SHIFT SPRINT · C CROUCH · SPACE JUMP</span>
+        <span>GO THROUGH THE GREEN DOOR</span>
+      </footer>
     </main>
   );
 }

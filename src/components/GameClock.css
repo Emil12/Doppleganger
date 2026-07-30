@@ -1,0 +1,30 @@
+.game-clock {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  min-width: 96px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  display: grid;
+  gap: 2px;
+  color: #e4dec7;
+  background: rgba(13, 18, 15, 0.72);
+  backdrop-filter: blur(8px);
+  text-align: right;
+  font-family: "Courier New", monospace;
+  pointer-events: none;
+}
+
+.game-clock span {
+  color: #89948b;
+  font-size: clamp(6px, 1vw, 8px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.game-clock strong {
+  color: #e3c86f;
+  font-size: clamp(10px, 1.7vw, 14px);
+  letter-spacing: 0.06em;
+}

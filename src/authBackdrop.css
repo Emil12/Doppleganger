@@ -1,0 +1,36 @@
+.auth-backdrop,
+.auth-light {
+  position: absolute;
+}
+
+.auth-backdrop {
+  inset: 0;
+  pointer-events: none;
+}
+
+.auth-canopy {
+  position: absolute;
+  top: 18%;
+  left: 5%;
+  width: 90%;
+  height: 15px;
+  background: #4d594f;
+  box-shadow: 0 9px 40px rgba(192, 222, 163, 0.18);
+  transform: perspective(500px) rotateX(55deg);
+}
+
+.auth-light {
+  top: 20%;
+  width: 32%;
+  height: 55%;
+  background: linear-gradient(rgba(186, 215, 162, 0.13), transparent);
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+}
+
+.auth-light--left {
+  left: 7%;
+}
+
+.auth-light--right {
+  right: 7%;
+}
