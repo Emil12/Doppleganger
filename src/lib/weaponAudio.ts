@@ -4,7 +4,7 @@ export function createWeaponAudio() {
   let context: AudioContext | null = null;
   let blastNoise: AudioBuffer | null = null;
 
-  const enable = () => {
+  const prepare = () => {
     if (!context) {
       context = new AudioContext();
       blastNoise = context.createBuffer(1, context.sampleRate * 0.32, context.sampleRate);
@@ -14,6 +14,11 @@ export function createWeaponAudio() {
         samples[index] = (Math.random() * 2 - 1) * decay;
       }
     }
+  };
+
+  const enable = () => {
+    prepare();
+    if (!context) return;
     if (context.state === 'suspended') void context.resume();
   };
 
@@ -158,5 +163,5 @@ export function createWeaponAudio() {
     blastNoise = null;
   };
 
-  return { enable, fire, empty, jumpscare, dispose };
+  return { prepare, enable, fire, empty, jumpscare, dispose };
 }

@@ -1,20 +1,35 @@
 import * as THREE from 'three';
 import { type CustomerModel } from './customerModel';
+import { sharedCustomerGeometry } from './customerGeometry';
 import { type AnomalyKind } from './anomalyTypes';
 
+const materials = new Map<string, THREE.MeshStandardMaterial>();
+
 function material(color: number, emissive = 0) {
-  return new THREE.MeshStandardMaterial({
+  const key = `${color}-${emissive}`;
+  const cached = materials.get(key);
+  if (cached) return cached;
+  const created = new THREE.MeshStandardMaterial({
     color,
     emissive,
     emissiveIntensity: emissive ? 1.5 : 1,
     roughness: 0.72,
   });
+  materials.set(key, created);
+  return created;
+}
+
+export function disposeAnomalyVariantMaterials() {
+  materials.forEach((item) => item.dispose());
 }
 
 function addScreamerFeatures(group: THREE.Group) {
   for (let ring = 0; ring < 3; ring += 1) {
     const throat = new THREE.Mesh(
-      new THREE.TorusGeometry(0.15 + ring * 0.035, 0.018, 7, 14),
+      sharedCustomerGeometry(
+        `screamer-throat-${ring}`,
+        () => new THREE.TorusGeometry(0.15 + ring * 0.035, 0.018, 7, 14),
+      ),
       material(0x5c090e, 0x210103),
     );
     throat.scale.y = 0.7;
@@ -26,14 +41,20 @@ function addScreamerFeatures(group: THREE.Group) {
 function addCrierFeatures(group: THREE.Group) {
   for (const x of [-0.11, 0.1]) {
     const tear = new THREE.Mesh(
-      new THREE.BoxGeometry(0.035, 0.46, 0.025),
+      sharedCustomerGeometry(
+        'crier-tear',
+        () => new THREE.BoxGeometry(0.035, 0.46, 0.025),
+      ),
       material(0x111923, 0x09111d),
     );
     tear.position.set(x, 1.56, -0.355);
     tear.rotation.z = x * 0.7;
     group.add(tear);
     const drop = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055, 8, 6),
+      sharedCustomerGeometry(
+        'crier-tear-drop',
+        () => new THREE.SphereGeometry(0.055, 8, 6),
+      ),
       material(0x182333, 0x081326),
     );
     drop.position.set(x * 1.15, 1.31, -0.37);
@@ -44,7 +65,10 @@ function addCrierFeatures(group: THREE.Group) {
 function addCrawlerFeatures(group: THREE.Group) {
   for (let index = 0; index < 5; index += 1) {
     const spine = new THREE.Mesh(
-      new THREE.ConeGeometry(0.055, 0.32 + index * 0.035, 6),
+      sharedCustomerGeometry(
+        `crawler-spine-${index}`,
+        () => new THREE.ConeGeometry(0.055, 0.32 + index * 0.035, 6),
+      ),
       material(0x25241e),
     );
     spine.position.set((index - 2) * 0.13, 1.2, 0.22);
@@ -61,7 +85,10 @@ function addStalkerFeatures(group: THREE.Group) {
     [0.19, 1.75],
   ] as const) {
     const eye = new THREE.Mesh(
-      new THREE.SphereGeometry(0.038, 9, 7),
+      sharedCustomerGeometry(
+        'stalker-eye',
+        () => new THREE.SphereGeometry(0.038, 9, 7),
+      ),
       material(0xe8e2c8, 0x403908),
     );
     eye.position.set(x, y, -0.335);

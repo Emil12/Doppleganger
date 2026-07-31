@@ -1,9 +1,12 @@
 import * as THREE from 'three';
 import { createAnomalyAudio } from './anomalyAudio';
-import { updateAnomalyChase } from './anomalyChase';
+import { prepareAnomalyChase, updateAnomalyChase } from './anomalyChase';
 import { disposeCustomerModel } from './customerModel';
-import { makeAnomalyHostile } from './anomalyModel';
-import { animateCustomerDeath } from './customerMess';
+import { disposeAnomalyMaterials, makeAnomalyHostile } from './anomalyModel';
+import { disposeAnomalyVariantMaterials } from './anomalyVariants';
+import { animateCustomerDeath, disposeCustomerMessAssets } from './customerMess';
+import { disposeSharedCustomerGeometries } from './customerGeometry';
+import { disposeCustomerMaterials } from './customerStyle';
 import { createCustomerInteractions } from './customerInteractions';
 import {
   createQueueDialogue,
@@ -34,6 +37,7 @@ export function createCustomerSystem(
     getDifficultyMultiplier,
   } = options;
   const customers: Customer[] = [];
+  const queue: Customer[] = [];
   const interactions = createCustomerInteractions(
     scene,
     customers,
@@ -99,6 +103,7 @@ export function createCustomerSystem(
       customer.model.root.position.x += ((waveIndex % 3) - 1) * 0.72;
       customer.model.idCard.visible = false;
       makeAnomalyHostile(customer.model);
+      prepareAnomalyChase(customer, time);
       nightmareSpawnsRemaining -= 1;
       nextNightmareSpawnAt = time + 650;
       if (nightmareSpawnsRemaining === 0) {
@@ -109,7 +114,10 @@ export function createCustomerSystem(
       spawnCustomer(selectAnomaly());
       nextCustomerAt = time + nextDelay();
     }
-    const queue = customers.filter(({ phase, diedAt }) => phase === 'queue' && diedAt === null);
+    queue.length = 0;
+    for (const customer of customers) {
+      if (customer.phase === 'queue' && customer.diedAt === null) queue.push(customer);
+    }
     queue.forEach((customer, place) => updateQueuePhase(customer, place, time, delta));
     queueDialogue.update(queue, time);
     for (let index = customers.length - 1; index >= 0; index -= 1) {
@@ -145,7 +153,20 @@ export function createCustomerSystem(
     nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
     nightmareSpawnsRemaining = 0;
     anomalyAudio.dispose();
+    disposeSharedCustomerGeometries();
+    disposeCustomerMaterials();
+    disposeAnomalyMaterials();
+    disposeAnomalyVariantMaterials();
+    disposeCustomerMessAssets();
   };
 
-  return { start, startNightmareWave, summonInspector, update, ...interactions, dispose };
+  return {
+    prepareAudio: anomalyAudio.prepare,
+    start,
+    startNightmareWave,
+    summonInspector,
+    update,
+    ...interactions,
+    dispose,
+  };
 }

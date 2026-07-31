@@ -6,7 +6,7 @@ export function createAnomalyAudio() {
   let context: AudioContext | null = null;
   let noise: AudioBuffer | null = null;
 
-  const ensureAudio = () => {
+  const prepare = () => {
     if (!context) context = new AudioContext();
     if (!noise) {
       noise = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
@@ -17,6 +17,8 @@ export function createAnomalyAudio() {
     }
     return context;
   };
+
+  const ensureAudio = prepare;
 
   const tone = (
     start: number,
@@ -109,7 +111,7 @@ export function createAnomalyAudio() {
     noise = null;
   };
 
-  return { enable, vocalize, dispose };
+  return { prepare, enable, vocalize, dispose };
 }
 
 export type AnomalyAudio = ReturnType<typeof createAnomalyAudio>;

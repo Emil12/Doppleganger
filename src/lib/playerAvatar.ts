@@ -59,6 +59,7 @@ export function createPlayerAvatarSystem(
   const shoes = new THREE.MeshStandardMaterial({ color: 0x111513, roughness: 0.86 });
   const feet = createAvatar(false, clothing, skin, shoes);
   const reflection = createAvatar(true, clothing, skin, shoes);
+  const avatars = [feet, reflection] as const;
   reflection.root.traverse((object) => object.layers.set(1));
   scene.add(feet.root, reflection.root);
 
@@ -78,10 +79,14 @@ export function createPlayerAvatarSystem(
     else mirror.material.dispose();
     mirror.material = mirrorMaterial;
   }
-  const mirrorCamera = new THREE.PerspectiveCamera(68, 0.82 / 1.05, 0.08, 45);
+  const mirrorCamera = new THREE.PerspectiveCamera(68, 0.82 / 1.05, 0.08, 35);
   mirrorCamera.layers.enable(1);
   let previousPosition = playerCamera.position.clone();
   let lastMirrorRenderAt = 0;
+  const direction = new THREE.Vector3();
+  const up = new THREE.Vector3();
+  const lookTarget = new THREE.Vector3();
+  const toMirror = new THREE.Vector3();
 
   const update = (yaw: number, time: number) => {
     const jumpHeight = Math.max(0, playerCamera.position.y - 1.65);
@@ -90,7 +95,7 @@ export function createPlayerAvatarSystem(
       playerCamera.position.z - previousPosition.z,
     );
     const stride = distance > 0.0001 ? Math.sin(time * 0.012) * 0.34 : 0;
-    for (const avatar of [feet, reflection]) {
+    for (const avatar of avatars) {
       avatar.root.position.set(playerCamera.position.x, jumpHeight, playerCamera.position.z);
       avatar.root.rotation.y = yaw;
       avatar.leftLeg.rotation.x = stride;
@@ -102,13 +107,16 @@ export function createPlayerAvatarSystem(
   const renderMirror = (
     render: (camera: THREE.PerspectiveCamera, target: THREE.WebGLRenderTarget) => void,
   ) => {
-    if (!mirror || playerCamera.position.distanceTo(mirror.position) > 6.5) return;
+    if (!mirror) return;
+    toMirror.copy(mirror.position).sub(playerCamera.position);
+    if (toMirror.lengthSq() > 6.5 ** 2) return;
+    playerCamera.getWorldDirection(direction);
+    if (direction.dot(toMirror.normalize()) < 0.08) return;
     const now = performance.now();
     if (now - lastMirrorRenderAt < 140) return;
     lastMirrorRenderAt = now;
     const mirrorX = RESTROOM.right - 0.14;
-    const direction = playerCamera.getWorldDirection(new THREE.Vector3());
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(playerCamera.quaternion);
+    up.set(0, 1, 0).applyQuaternion(playerCamera.quaternion);
     mirrorCamera.position.copy(playerCamera.position);
     mirrorCamera.position.x = mirrorX * 2 - playerCamera.position.x;
     direction.x *= -1;
@@ -116,7 +124,8 @@ export function createPlayerAvatarSystem(
     mirrorCamera.up.copy(up);
     mirrorCamera.fov = playerCamera.fov;
     mirrorCamera.updateProjectionMatrix();
-    mirrorCamera.lookAt(mirrorCamera.position.clone().add(direction));
+    lookTarget.copy(mirrorCamera.position).add(direction);
+    mirrorCamera.lookAt(lookTarget);
     feet.root.visible = false;
     mirror.visible = false;
     if (mirrorWall) mirrorWall.visible = false;
@@ -132,7 +141,7 @@ export function createPlayerAvatarSystem(
     renderTarget.dispose();
     mirrorMaterial.dispose();
     [clothing, skin, shoes].forEach((item) => item.dispose());
-    for (const avatar of [feet, reflection]) {
+    for (const avatar of avatars) {
       avatar.root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });

@@ -10,6 +10,7 @@ export {
   showWeaponSlot,
 } from './weaponPickup';
 export {
+  disposeWeaponEffectAssets,
   fireWeapon,
   setWeaponAiming,
   setWeaponReloading,

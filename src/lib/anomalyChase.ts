@@ -6,6 +6,8 @@ import { createBloodDrop, MAX_BLOOD_MARKS_PER_CUSTOMER } from './customerMess';
 import { moveCustomer } from './customerRoute';
 import { isHiddenInRestroom } from './gasStationRestroom';
 
+const chaseTarget = { x: 0, z: 0 };
+
 type ChaseOptions = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -17,6 +19,11 @@ type ChaseOptions = {
   isBloodEnabled: () => boolean;
   difficultyMultiplier: number;
 };
+
+export function prepareAnomalyChase(customer: Customer, time: number) {
+  customer.nextVocalAt = time + 300 + Math.random() * 600;
+  customer.nextBloodDropAt = time + 180 + Math.random() * 260;
+}
 
 export function updateAnomalyChase(options: ChaseOptions) {
   const { scene, camera, customer, audio, time, delta, onPlayerHit } = options;
@@ -31,9 +38,11 @@ export function updateAnomalyChase(options: ChaseOptions) {
   );
 
   if (distance > 0.9) {
+    chaseTarget.x = camera.position.x;
+    chaseTarget.z = camera.position.z;
     moveCustomer(
       customer.model,
-      { x: camera.position.x, z: camera.position.z },
+      chaseTarget,
       time,
       delta * (speed / 1.15),
     );

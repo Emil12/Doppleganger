@@ -22,9 +22,16 @@ export const EXIT_ROUTE: RouteStop[] = [
 
 const WALK_SPEED = 1.15;
 const QUEUE_FRONT = { x: 4.75, z: -13.9 };
+const queueTarget = { x: QUEUE_FRONT.x, z: QUEUE_FRONT.z };
 
-export function queuePosition(index: number) {
-  return { x: QUEUE_FRONT.x - index * 0.9, z: QUEUE_FRONT.z };
+export function moveCustomerToQueue(
+  model: CustomerModel,
+  index: number,
+  time: number,
+  delta: number,
+) {
+  queueTarget.x = QUEUE_FRONT.x - index * 0.9;
+  return moveCustomer(model, queueTarget, time, delta);
 }
 
 export function moveCustomer(

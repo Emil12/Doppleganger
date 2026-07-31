@@ -564,7 +564,7 @@ export function GasStationGame() {
     camera.position.set(0, 1.65, 8);
     camera.rotation.order = 'YXZ';
     const playerAvatar = createPlayerAvatarSystem(scene, camera);
-    const entityCulling = createEntityCullingSystem(scene);
+    const entityCulling = createEntityCullingSystem(scene, camera);
     let previousTime = performance.now();
     let frame = 0;
     let wasHidden = false;
@@ -631,6 +631,11 @@ export function GasStationGame() {
     const daylight = createDaylightCycle(scene);
     footstepAudioRef.current = footsteps;
     weaponAudioRef.current = weaponAudio;
+    const audioWarmupTimers = [
+      window.setTimeout(footsteps.prepare, 80),
+      window.setTimeout(weaponAudio.prepare, 240),
+      window.setTimeout(customers.prepareAudio, 420),
+    ];
     customerSystemRef.current = customers;
     daylightCycleRef.current = daylight;
     let lastStaminaUpdate = 0;
@@ -782,9 +787,9 @@ export function GasStationGame() {
         nextProximityUpdateAt = time + 50;
       }
       playerAvatar.renderMirror((mirrorCamera, target) => {
-        entityCulling.update(mirrorCamera, time, true);
+        entityCulling.update(mirrorCamera, time, true, true);
         renderer.renderToTarget(mirrorCamera, target);
-        entityCulling.update(camera, time, true);
+        entityCulling.update(camera, time, true, true);
       });
       renderer.render();
       frame = requestAnimationFrame(animate);
@@ -793,6 +798,7 @@ export function GasStationGame() {
 
     return () => {
       cancelAnimationFrame(frame);
+      audioWarmupTimers.forEach((timer) => window.clearTimeout(timer));
       observer.disconnect();
       detachInput();
       actions.dispose();

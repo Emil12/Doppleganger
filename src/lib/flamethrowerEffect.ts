@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 import { WEAPON_EFFECT_NAME } from './weaponShotEffect';
 
+const FLAME_GEOMETRIES = Array.from(
+  { length: 4 },
+  (_, index) => new THREE.IcosahedronGeometry(0.09 + index * 0.055, 0),
+);
+
+export function disposeFlameEffectAssets() {
+  FLAME_GEOMETRIES.forEach((geometry) => geometry.dispose());
+}
+
 export function createFlameEffect(
   scene: THREE.Scene,
   start: THREE.Vector3,
@@ -12,7 +21,7 @@ export function createFlameEffect(
   effect.userData.initialLife = 0.34;
   for (let index = 0; index < 4; index += 1) {
     const flame = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.09 + index * 0.055, 0),
+      FLAME_GEOMETRIES[index],
       new THREE.MeshBasicMaterial({
         color: index === 0 ? 0xffe066 : index < 3 ? 0xff7a24 : 0xb92912,
         transparent: true,

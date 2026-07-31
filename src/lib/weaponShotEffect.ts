@@ -7,6 +7,11 @@ export type ShotImpact = {
   hit: boolean;
 };
 
+const MUZZLE_FLASH_GEOMETRY = new THREE.ConeGeometry(0.2, 0.56, 7);
+const SMOKE_GEOMETRY = new THREE.SphereGeometry(0.055, 5, 3);
+const IMPACT_GEOMETRY = new THREE.OctahedronGeometry(0.035, 0);
+const UP_DIRECTION = new THREE.Vector3(0, 1, 0);
+
 function addMuzzleFlash(
   effect: THREE.Group,
   start: THREE.Vector3,
@@ -18,8 +23,8 @@ function addMuzzleFlash(
     transparent: true,
     blending: THREE.AdditiveBlending,
   });
-  const flash = new THREE.Mesh(new THREE.ConeGeometry(size, size * 2.8, 7), material);
-  flash.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+  const flash = new THREE.Mesh(MUZZLE_FLASH_GEOMETRY, material);
+  flash.quaternion.setFromUnitVectors(UP_DIRECTION, direction);
   flash.position.copy(start).addScaledVector(direction, size);
   effect.add(flash);
 
@@ -27,7 +32,7 @@ function addMuzzleFlash(
 
 function addSmoke(effect: THREE.Group, start: THREE.Vector3, direction: THREE.Vector3) {
   const smoke = new THREE.Mesh(
-    new THREE.SphereGeometry(0.055, 5, 3),
+    SMOKE_GEOMETRY,
     new THREE.MeshBasicMaterial({
       color: 0xb8b4a9,
       transparent: true,
@@ -43,7 +48,7 @@ function addSmoke(effect: THREE.Group, start: THREE.Vector3, direction: THREE.Ve
 
 function addImpact(effect: THREE.Group, point: THREE.Vector3) {
   const spark = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.035, 0),
+    IMPACT_GEOMETRY,
     new THREE.MeshBasicMaterial({ color: 0xffb45b, transparent: true }),
   );
   spark.position.copy(point);
@@ -71,11 +76,20 @@ export function createShotEffect(
 function disposeEffect(effect: THREE.Object3D) {
   effect.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
-    object.geometry.dispose();
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     materials.forEach((material) => material.dispose());
   });
   effect.removeFromParent();
+}
+
+export function disposeShotEffectAssets(scene: THREE.Scene) {
+  for (let index = scene.children.length - 1; index >= 0; index -= 1) {
+    const object = scene.children[index];
+    if (object.name === WEAPON_EFFECT_NAME) disposeEffect(object);
+  }
+  MUZZLE_FLASH_GEOMETRY.dispose();
+  SMOKE_GEOMETRY.dispose();
+  IMPACT_GEOMETRY.dispose();
 }
 
 export function updateShotEffects(scene: THREE.Scene, delta: number) {

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {
+  disposeWeaponEffectAssets,
   fireWeapon,
   setWeaponAiming,
   setWeaponReloading,
@@ -185,6 +186,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     dispose: () => {
       stopFiring();
       stopReload();
+      disposeWeaponEffectAssets(scene);
     },
   };
 }

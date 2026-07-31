@@ -1,16 +1,26 @@
 import * as THREE from 'three';
 import {
   createShotEffect,
+  disposeShotEffectAssets,
   type ShotImpact,
   updateShotEffects,
   WEAPON_EFFECT_NAME,
 } from './weaponShotEffect';
 import { type WeaponKind, WEAPON_CONFIG } from './weaponTypes';
-import { createFlameEffect } from './flamethrowerEffect';
+import {
+  createFlameEffect,
+  disposeFlameEffectAssets,
+} from './flamethrowerEffect';
 
 const MAX_SHOT_DISTANCE = 45;
 const DEFAULT_FOV = 68;
 const AIM_FOV = 56;
+const shotRaycaster = new THREE.Raycaster();
+const forwardDirection = new THREE.Vector3();
+const pelletDirection = new THREE.Vector3();
+const directionRight = new THREE.Vector3();
+const directionUp = new THREE.Vector3();
+const shotStart = new THREE.Vector3();
 
 function shotTargets(scene: THREE.Scene, camera: THREE.Camera) {
   return scene.children.filter((child) => child !== camera && child.name !== WEAPON_EFFECT_NAME);
@@ -18,16 +28,17 @@ function shotTargets(scene: THREE.Scene, camera: THREE.Camera) {
 
 function shotDirection(
   camera: THREE.PerspectiveCamera,
+  target: THREE.Vector3,
   spreadX = 0,
   spreadY = 0,
 ) {
-  const direction = new THREE.Vector3();
-  const right = new THREE.Vector3();
-  const up = new THREE.Vector3();
-  camera.getWorldDirection(direction);
-  right.setFromMatrixColumn(camera.matrixWorld, 0);
-  up.setFromMatrixColumn(camera.matrixWorld, 1);
-  return direction.addScaledVector(right, spreadX).addScaledVector(up, spreadY).normalize();
+  camera.getWorldDirection(target);
+  directionRight.setFromMatrixColumn(camera.matrixWorld, 0);
+  directionUp.setFromMatrixColumn(camera.matrixWorld, 1);
+  return target
+    .addScaledVector(directionRight, spreadX)
+    .addScaledVector(directionUp, spreadY)
+    .normalize();
 }
 
 export function fireWeapon(
@@ -38,15 +49,25 @@ export function fireWeapon(
   const config = WEAPON_CONFIG[kind];
   const hits: THREE.Intersection[] = [];
   const impacts: ShotImpact[] = [];
-  const forward = shotDirection(camera);
-  const start = camera.position.clone().addScaledVector(forward, 0.82);
+  const intersections: THREE.Intersection[] = [];
+  const targets = shotTargets(scene, camera);
+  const forward = shotDirection(camera, forwardDirection);
+  const start = shotStart.copy(camera.position).addScaledVector(forward, 0.82);
   const shotDistance = kind === 'flamethrower' ? 6 : MAX_SHOT_DISTANCE;
   for (let pellet = 0; pellet < config.projectiles; pellet += 1) {
     const angle = pellet * 2.399;
     const radius = pellet === 0 ? 0 : config.spread * (0.5 + (pellet % 3) * 0.25);
-    const direction = shotDirection(camera, Math.cos(angle) * radius, Math.sin(angle) * radius);
-    const hit = new THREE.Raycaster(camera.position, direction, 0.7, shotDistance)
-      .intersectObjects(shotTargets(scene, camera), true)[0];
+    const direction = shotDirection(
+      camera,
+      pelletDirection,
+      Math.cos(angle) * radius,
+      Math.sin(angle) * radius,
+    );
+    shotRaycaster.set(camera.position, direction);
+    shotRaycaster.near = 0.7;
+    shotRaycaster.far = shotDistance;
+    intersections.length = 0;
+    const hit = shotRaycaster.intersectObjects(targets, true, intersections)[0];
     if (hit) hits.push(hit);
     impacts.push({
       point: hit?.point ?? camera.position.clone().addScaledVector(direction, shotDistance),
@@ -57,6 +78,11 @@ export function fireWeapon(
   else createShotEffect(scene, start, forward, impacts);
   triggerWeaponRecoil(camera, kind);
   return hits;
+}
+
+export function disposeWeaponEffectAssets(scene: THREE.Scene) {
+  disposeShotEffectAssets(scene);
+  disposeFlameEffectAssets();
 }
 
 export function triggerWeaponRecoil(camera: THREE.Camera, kind: WeaponKind) {

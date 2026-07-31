@@ -7,7 +7,7 @@ const FLOOR_GAP = 0.006;
 const INDOOR_FLOOR_HEIGHT = 0.075;
 const CONCRETE_HEIGHT = -0.05;
 const ROAD_HEIGHT = 0.04;
-export const MAX_BLOOD_MARKS_PER_CUSTOMER = 24;
+export const MAX_BLOOD_MARKS_PER_CUSTOMER = 12;
 
 function floorHeight(position: THREE.Vector3) {
   const insideShop = position.x >= SHOP.left
@@ -55,6 +55,11 @@ function bloodMaterial(color: number) {
   });
   bloodMaterials.set(color, created);
   return created;
+}
+
+export function disposeCustomerMessAssets() {
+  BLOOD_BLOB_GEOMETRY.dispose();
+  bloodMaterials.forEach((material) => material.dispose());
 }
 
 function stain(radius: number, color: number, x = 0, z = 0, salt = 1) {

@@ -5,7 +5,7 @@ export function createFootstepAudio() {
   let nextBreathAt = 0;
   let foot = 1;
 
-  const enable = () => {
+  const prepare = () => {
     if (!context) {
       context = new AudioContext();
       noise = context.createBuffer(1, context.sampleRate * 0.75, context.sampleRate);
@@ -14,6 +14,11 @@ export function createFootstepAudio() {
         samples[index] = Math.random() * 2 - 1;
       }
     }
+  };
+
+  const enable = () => {
+    prepare();
+    if (!context) return;
     if (context.state === 'suspended') void context.resume();
   };
 
@@ -87,5 +92,5 @@ export function createFootstepAudio() {
     noise = null;
   };
 
-  return { enable, update, dispose };
+  return { prepare, enable, update, dispose };
 }

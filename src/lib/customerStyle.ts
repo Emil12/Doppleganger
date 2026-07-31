@@ -21,6 +21,7 @@ const STYLES: CustomerStyle[] = [
 ];
 
 const materials = new Map<string, THREE.MeshStandardMaterial>();
+const basicMaterials = new Map<number, THREE.MeshBasicMaterial>();
 
 export function customerStyle(index: number) {
   return STYLES[index % STYLES.length];
@@ -41,6 +42,14 @@ export function customerMaterial(color: number, roughness = 0.68, emissive = 0) 
   return created;
 }
 
+export function customerBasicMaterial(color: number) {
+  const cached = basicMaterials.get(color);
+  if (cached) return cached;
+  const created = new THREE.MeshBasicMaterial({ color });
+  basicMaterials.set(color, created);
+  return created;
+}
+
 export function customerMesh(
   geometry: THREE.BufferGeometry,
   color: number,
@@ -49,4 +58,9 @@ export function customerMesh(
 ) {
   const mesh = new THREE.Mesh(geometry, customerMaterial(color, roughness, emissive));
   return mesh;
+}
+
+export function disposeCustomerMaterials() {
+  materials.forEach((material) => material.dispose());
+  basicMaterials.forEach((material) => material.dispose());
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createLightBudgetSystem } from './lightBudget';
 
 const CULL_RADIUS_KEY = 'cullRadius';
 const CULL_DISTANCE_KEY = 'cullDistance';
@@ -20,15 +21,18 @@ export function markDistanceCullable<T extends THREE.Light>(light: T, maxDistanc
   return light;
 }
 
-export function createEntityCullingSystem(scene: THREE.Scene) {
+export function createEntityCullingSystem(
+  scene: THREE.Scene,
+  initialCamera: THREE.Camera,
+) {
   const frustum = new THREE.Frustum();
   const viewProjection = new THREE.Matrix4();
   const sphere = new THREE.Sphere();
   const worldPosition = new THREE.Vector3();
   const worldScale = new THREE.Vector3();
   let entities: THREE.Object3D[] = [];
-  let localLights: THREE.Light[] = [];
   let nextDiscoveryAt = 0;
+  const lightBudget = createLightBudgetSystem(scene, initialCamera, LIGHT_DISTANCE_KEY);
 
   const discover = (time: number) => {
     if (time < nextDiscoveryAt) return;
@@ -36,17 +40,16 @@ export function createEntityCullingSystem(scene: THREE.Scene) {
     entities = scene.children.filter(
       (object) => Number(object.userData[CULL_RADIUS_KEY]) > 0,
     );
-    localLights = scene.children.filter(
-      (object): object is THREE.Light => (
-        object instanceof THREE.Light
-        && Number(object.userData[LIGHT_DISTANCE_KEY]) > 0
-      ),
-    );
   };
 
-  const update = (camera: THREE.Camera, time = performance.now(), forceDiscovery = false) => {
-    if (forceDiscovery) nextDiscoveryAt = 0;
+  const update = (
+    camera: THREE.Camera,
+    time = performance.now(),
+    updateLights = true,
+    forceLightUpdate = false,
+  ) => {
     discover(time);
+    if (updateLights) lightBudget.update(camera, time, forceLightUpdate);
     camera.updateMatrixWorld();
     viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     frustum.setFromProjectionMatrix(viewProjection);
@@ -62,10 +65,6 @@ export function createEntityCullingSystem(scene: THREE.Scene) {
       entity.visible = worldPosition.distanceTo(camera.position) - radius <= maxDistance
         && frustum.intersectsSphere(sphere);
     });
-    localLights.forEach((light) => {
-      light.visible = light.position.distanceTo(camera.position)
-        <= Number(light.userData[LIGHT_DISTANCE_KEY]);
-    });
   };
 
   const dispose = () => {
@@ -73,8 +72,7 @@ export function createEntityCullingSystem(scene: THREE.Scene) {
       if (entity.parent === scene) entity.visible = true;
     });
     entities = [];
-    localLights.forEach((light) => { light.visible = true; });
-    localLights = [];
+    lightBudget.dispose();
   };
 
   return { update, dispose };

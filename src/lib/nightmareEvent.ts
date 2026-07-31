@@ -24,6 +24,8 @@ const DAISY_CHORUS: MelodyNote[] = [
 ];
 
 const BEAT_SECONDS = 1.05;
+const SCHEDULER_INTERVAL_MS = 200;
+const SCHEDULE_AHEAD_SECONDS = 2;
 
 function frequency(midi: number) {
   return 440 * 2 ** ((midi - 69) / 12);
@@ -32,6 +34,7 @@ function frequency(midi: number) {
 export function createNightmareAudio() {
   let context: AudioContext | null = null;
   let master: GainNode | null = null;
+  let schedulerTimer: number | null = null;
   const voices = new Set<OscillatorNode>();
 
   const enable = () => {
@@ -39,7 +42,13 @@ export function createNightmareAudio() {
     if (context.state === 'suspended') void context.resume();
   };
 
+  const stopScheduler = () => {
+    if (schedulerTimer !== null) window.clearInterval(schedulerTimer);
+    schedulerTimer = null;
+  };
+
   const stop = () => {
+    stopScheduler();
     voices.forEach((voice) => {
       try {
         voice.stop();
@@ -72,7 +81,11 @@ export function createNightmareAudio() {
     gain.gain.setValueAtTime(volume, Math.max(startAt + 0.07, startAt + duration - 0.12));
     gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
     voice.connect(gain).connect(bus);
-    voice.onended = () => voices.delete(voice);
+    voice.onended = () => {
+      voice.disconnect();
+      gain.disconnect();
+      voices.delete(voice);
+    };
     voices.add(voice);
     voice.start(startAt);
     voice.stop(startAt + duration + 0.02);
@@ -104,20 +117,33 @@ export function createNightmareAudio() {
     delay.connect(master);
     master.connect(limiter).connect(context.destination);
 
-    const endAt = context.currentTime + NIGHTMARE_DURATION_MS / 1000;
-    let cursor = context.currentTime + 0.2;
-    while (cursor < endAt) {
-      for (const [midi, beats] of DAISY_CHORUS) {
+    const audio = context;
+    const endAt = audio.currentTime + NIGHTMARE_DURATION_MS / 1000;
+    let cursor = audio.currentTime + 0.2;
+    let noteIndex = 0;
+    const scheduleUpcomingNotes = () => {
+      const scheduleUntil = Math.min(endAt, audio.currentTime + SCHEDULE_AHEAD_SECONDS);
+      while (cursor < scheduleUntil && cursor < endAt) {
+        const [midi, beats] = DAISY_CHORUS[noteIndex];
         const duration = beats * BEAT_SECONDS;
-        if (midi !== null && cursor < endAt) {
-          const noteDuration = Math.min(duration * 0.92, endAt - cursor);
-          scheduleVoice(filter, midi - 12, cursor, noteDuration, 'triangle', 0.12);
-          scheduleVoice(filter, midi, cursor, noteDuration, 'sine', 0.035, -13);
+        const startAt = Math.max(cursor, audio.currentTime + 0.01);
+        const soundEnd = Math.min(endAt, cursor + duration * 0.92);
+        const noteDuration = soundEnd - startAt;
+        if (midi !== null && noteDuration > 0.14) {
+          scheduleVoice(filter, midi - 12, startAt, noteDuration, 'triangle', 0.12);
+          scheduleVoice(filter, midi, startAt, noteDuration, 'sine', 0.035, -13);
         }
         cursor += duration;
+        noteIndex += 1;
+        if (noteIndex === DAISY_CHORUS.length) {
+          noteIndex = 0;
+          cursor += BEAT_SECONDS * 2;
+        }
       }
-      cursor += BEAT_SECONDS * 2;
-    }
+      if (cursor >= endAt) stopScheduler();
+    };
+    schedulerTimer = window.setInterval(scheduleUpcomingNotes, SCHEDULER_INTERVAL_MS);
+    scheduleUpcomingNotes();
   };
 
   const dispose = () => {

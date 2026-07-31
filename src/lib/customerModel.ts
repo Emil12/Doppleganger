@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createAnomalyFeatures } from './anomalyModel';
 import { createIdCard, createShoppingBag } from './customerAccessories';
 import { createCustomerBody } from './customerBody';
+import { isSharedCustomerGeometry } from './customerGeometry';
 import { customerStyle } from './customerStyle';
 import { type AnomalyKind, randomAnomalyKind } from './anomalyTypes';
 
@@ -59,6 +60,11 @@ export function createCustomerModel(index: number, isAnomaly = false): CustomerM
 
 export function disposeCustomerModel(model: CustomerModel) {
   model.root.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.geometry.dispose();
+    if (
+      object instanceof THREE.Mesh
+      && !isSharedCustomerGeometry(object.geometry)
+    ) {
+      object.geometry.dispose();
+    }
   });
 }

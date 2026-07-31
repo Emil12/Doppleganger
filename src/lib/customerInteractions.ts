@@ -5,6 +5,7 @@ import {
   MAX_BLOOD_MARKS_PER_CUSTOMER,
 } from './customerMess';
 import { type CheckoutKind, type Customer } from './customerTypes';
+import { prepareAnomalyChase } from './anomalyChase';
 import { makeAnomalyHostile } from './anomalyModel';
 import { disposeCustomerModel } from './customerModel';
 
@@ -77,7 +78,10 @@ export function createCustomerInteractions(
     customer.phase = customer.model.isAnomaly ? 'attacking' : 'leaving';
     customer.routeIndex = 0;
     customer.model.idCard.visible = false;
-    if (customer.model.isAnomaly) makeAnomalyHostile(customer.model);
+    if (customer.model.isAnomaly) {
+      makeAnomalyHostile(customer.model);
+      prepareAnomalyChase(customer, performance.now());
+    }
     return customer.model.isAnomaly ? 'anomaly' : 'buyer';
   };
 

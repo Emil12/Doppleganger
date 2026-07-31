@@ -2,7 +2,7 @@ import { disposeCustomerModel } from './customerModel';
 import {
   EXIT_ROUTE,
   moveCustomer,
-  queuePosition,
+  moveCustomerToQueue,
   SHOPPING_ROUTE,
 } from './customerRoute';
 import { type Customer } from './customerTypes';
@@ -26,8 +26,7 @@ export function updateQueuePhase(
   time: number,
   delta: number,
 ) {
-  const target = queuePosition(place);
-  const ready = moveCustomer(customer.model, target, time, delta);
+  const ready = moveCustomerToQueue(customer.model, place, time, delta);
   customer.model.idCard.visible = place === 0 && ready;
   if (customer.model.idCard.visible) customer.model.rightArm.rotation.x = -0.8;
 }
