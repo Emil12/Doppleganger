@@ -51,10 +51,15 @@ import {
   type PlayerClassKind,
 } from '../lib/playerClasses';
 import {
+  loadFreePlayRemainingMs,
+  saveFreePlayRemainingMs,
+} from '../lib/freePlayTrial';
+import {
   staffDoorBlocks,
   updateStaffDoors,
 } from '../lib/staffDoor';
 import { GameControls } from './GameControls';
+import { AccountRequired } from './AccountRequired';
 import { DeathScreen } from './DeathScreen';
 import { GameHud } from './GameHud';
 import { InspectorExecution } from './InspectorExecution';
@@ -131,6 +136,8 @@ export function GasStationGame() {
   const [runComplete, setRunComplete] = useState(false);
   const [coinReward, setCoinReward] = useState(0);
   const [classMedkits, setClassMedkits] = useState(0);
+  const [trialRemainingMs, setTrialRemainingMs] = useState(loadFreePlayRemainingMs);
+  const trialRemainingRef = useRef(trialRemainingMs);
 
   const applyEconomy = useCallback((nextEconomy: GameEconomy) => {
     economyRef.current = nextEconomy;
@@ -233,6 +240,7 @@ export function GasStationGame() {
       || playingRef.current
       || shiftSummaryRef.current
       || deathSummaryRef.current
+      || (!economyRef.current.signedIn && trialRemainingRef.current <= 0)
     ) return;
     runStatsRef.current = createRunStats();
     runStartedAtRef.current = performance.now();
@@ -247,6 +255,7 @@ export function GasStationGame() {
   }, [prepareClassLoadout]);
 
   const startFromMenu = useCallback(() => {
+    if (!economyRef.current.signedIn && trialRemainingRef.current <= 0) return;
     setRunComplete(false);
     setCoinReward(0);
     menuOpenRef.current = false;
@@ -377,6 +386,7 @@ export function GasStationGame() {
   }, [finishRun]);
 
   const startNextShift = useCallback(() => {
+    if (!economyRef.current.signedIn && trialRemainingRef.current <= 0) return;
     shiftStatsRef.current = createShiftStats();
     shiftSummaryRef.current = null;
     setShiftSummary(null);
@@ -427,6 +437,7 @@ export function GasStationGame() {
   }, [stopInspectorExecution]);
 
   const restartRun = useCallback(() => {
+    if (!economyRef.current.signedIn && trialRemainingRef.current <= 0) return;
     shiftStatsRef.current = createShiftStats();
     shiftSummaryRef.current = null;
     deathSummaryRef.current = null;
@@ -461,6 +472,41 @@ export function GasStationGame() {
     setPlaying(true);
     if (canvasRef.current) void canvasRef.current.requestPointerLock();
   }, [prepareClassLoadout, stopInspectorExecution]);
+
+  useEffect(() => {
+    if (!playing || economy.signedIn || trialRemainingRef.current <= 0) return;
+    let lastTick = performance.now();
+    const tick = () => {
+      const now = performance.now();
+      if (document.visibilityState === 'visible') {
+        const remaining = Math.max(0, trialRemainingRef.current - (now - lastTick));
+        trialRemainingRef.current = remaining;
+        saveFreePlayRemainingMs(remaining);
+        setTrialRemainingMs(remaining);
+        if (remaining === 0) {
+          playingRef.current = false;
+          sprintRef.current = false;
+          Object.keys(pressedRef.current).forEach((key) => {
+            pressedRef.current[key as Direction] = false;
+          });
+          if (document.pointerLockElement) void document.exitPointerLock();
+          nightmareAudioRef.current?.stop();
+          setNightmareActive(false);
+          setQueueDialogue(null);
+          setPlaying(false);
+        }
+      }
+      lastTick = now;
+    };
+    const timer = window.setInterval(tick, 1_000);
+    const resetTick = () => { lastTick = performance.now(); };
+    document.addEventListener('visibilitychange', resetTick);
+    return () => {
+      tick();
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', resetTick);
+    };
+  }, [economy.signedIn, playing]);
 
   useEffect(() => {
     const nightmareAudio = createNightmareAudio();
@@ -808,8 +854,10 @@ export function GasStationGame() {
           onBuyClass={(playerClass) => { void purchaseClass(playerClass); }}
           onSelectClass={(playerClass) => { void chooseClass(playerClass); }}
           onStart={startFromMenu}
+          freePlayRemainingMs={economy.signedIn ? null : trialRemainingMs}
         />
       )}
+      {!economyBusy && !economy.signedIn && trialRemainingMs <= 0 && <AccountRequired />}
       <GameControls
         onStart={startGame}
         onControl={setControl}

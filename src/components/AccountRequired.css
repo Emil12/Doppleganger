@@ -1,0 +1,59 @@
+.account-required {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  color: #e9e2c8;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(207, 215, 191, 0.05) 4px),
+    radial-gradient(circle, rgba(62, 79, 65, 0.32), transparent 48%),
+    rgba(4, 7, 5, 0.97);
+}
+
+.account-required__panel {
+  width: min(100%, 540px);
+  padding: clamp(30px, 6vw, 58px);
+  border: 1px solid rgba(168, 154, 95, 0.3);
+  border-left: 4px solid #a69150;
+  display: grid;
+  gap: 18px;
+  background: rgba(11, 16, 13, 0.94);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.7);
+}
+
+.account-required p,
+.account-required small {
+  color: #8c968d;
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.18em;
+}
+
+.account-required h2 {
+  color: #eee4b9;
+  font: 800 clamp(26px, 6vw, 42px)/1.05 "Courier New", monospace;
+}
+
+.account-required span {
+  color: #aab2aa;
+  line-height: 1.6;
+}
+
+.account-required a {
+  padding: 16px 18px;
+  border: 1px solid #a69150;
+  color: #f2e4ad;
+  background: rgba(147, 126, 62, 0.2);
+  font: 800 11px "Courier New", monospace;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-decoration: none;
+}
+
+.account-required a:hover,
+.account-required a:focus-visible {
+  color: #fff4bd;
+  background: rgba(147, 126, 62, 0.36);
+  outline: 2px solid rgba(196, 177, 99, 0.4);
+}

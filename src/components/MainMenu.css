@@ -77,6 +77,11 @@
   animation: status-pulse 1.4s steps(2) infinite;
 }
 
+.main-menu__status span {
+  margin-left: auto;
+  color: #b6a86c;
+}
+
 .main-menu__eyebrow,
 .main-menu__tagline {
   margin: 0;

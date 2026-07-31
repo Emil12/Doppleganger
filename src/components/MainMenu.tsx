@@ -1,6 +1,7 @@
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
 import { type GameEconomy } from '../lib/gameEconomy';
 import { type GameSettings } from '../lib/gameSettings';
+import { formatFreePlayTime } from '../lib/freePlayTrial';
 import { PLAYER_CLASSES, type PlayerClassKind } from '../lib/playerClasses';
 import { HowToPlayMenu } from './HowToPlayMenu';
 import { MainMenuBackdrop } from './MainMenuBackdrop';
@@ -21,6 +22,7 @@ type MainMenuProps = {
   onBuyClass: (playerClass: PlayerClassKind) => void;
   onSelectClass: (playerClass: PlayerClassKind) => void;
   onStart: () => void;
+  freePlayRemainingMs: number | null;
 };
 
 type MenuPanel = 'main' | 'settings' | 'shop' | 'classes' | 'howToPlay';
@@ -34,6 +36,7 @@ export function MainMenu({
   onBuyClass,
   onSelectClass,
   onStart,
+  freePlayRemainingMs,
 }: MainMenuProps) {
   const [panel, setPanel] = useState<MenuPanel>('main');
   const menuRef = useRef<HTMLElement>(null);
@@ -73,6 +76,9 @@ export function MainMenu({
           <div className="main-menu__status">
             <i />
             NIGHT SHIFT AVAILABLE
+            {freePlayRemainingMs !== null && (
+              <span>FREE ACCESS · {formatFreePlayTime(freePlayRemainingMs)}</span>
+            )}
           </div>
           <p className="main-menu__eyebrow">HIGHWAY 09 · SIGNAL UNSTABLE</p>
           <h2><span>DOPPLE</span>GANGER</h2>
