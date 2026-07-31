@@ -1,7 +1,7 @@
 import './GameHud.css';
 import { GameClock } from './GameClock';
 import { type CheckoutKind } from '../lib/customerSystem';
-import { type WeaponKind, WEAPON_CONFIG } from '../lib/gameWeapon';
+import { type WeaponKind, type WeaponSlot, WEAPON_CONFIG } from '../lib/gameWeapon';
 import { type DoorLabel } from '../lib/staffDoor';
 
 type GameHudProps = {
@@ -12,10 +12,11 @@ type GameHudProps = {
   stamina: number;
   exhausted: boolean;
   health: number;
+  maxHealth: number;
   judgementPoints: number;
   medkits: number;
   weapon: WeaponKind | null;
-  activeSlot: 1 | null;
+  activeSlot: WeaponSlot | null;
   ammo: number;
   capacity: number;
   nearbyWeapon: WeaponKind | null;
@@ -36,6 +37,7 @@ export function GameHud({
   stamina,
   exhausted,
   health,
+  maxHealth,
   judgementPoints,
   medkits,
   weapon,
@@ -78,13 +80,19 @@ export function GameHud({
       </div>
       {hidden && <p className="hidden-indicator">HIDDEN · STAY QUIET</p>}
       <GameClock playing={playing} shiftNumber={shiftNumber} onShiftEnd={onShiftEnd} />
-      <div className="health-meter" role="progressbar" aria-label="Health" aria-valuenow={health}>
+      <div
+        className="health-meter"
+        role="progressbar"
+        aria-label="Health"
+        aria-valuenow={health}
+        aria-valuemax={maxHealth}
+      >
         <div className="health-meter__header">
           <span>HEALTH</span>
-          <span>{health}%</span>
+          <span>{health} / {maxHealth}</span>
         </div>
         <div className="health-meter__track">
-          <span style={{ width: `${health}%` }} />
+          <span style={{ width: `${(health / maxHealth) * 100}%` }} />
         </div>
       </div>
       <div
@@ -128,15 +136,16 @@ export function GameHud({
           {weapon ? `E · PUT BACK ${weaponLabel}` : `E · PICK UP ${nearbyWeaponLabel}`}
         </p>
       )}
-      {weapon && activeSlot === 1 && (
+      {weapon && activeSlot !== null && (
         <div className={`weapon-hud ${ammo === 0 ? 'weapon-hud--empty' : ''}`}>
           <span>{weaponLabel}</span>
           <strong>{ammo} / {capacity}</strong>
           <small>
             {reloading
-              ? `LOADING SHELLS… ${ammo} / ${capacity}`
+              ? `${weapon === 'flamethrower' ? 'REFILLING FUEL' : 'RELOADING'}… ${ammo} / ${capacity}`
               : ammo > 0 ? 'LMB SHOOT · RMB AIM · R RELOAD' : 'EMPTY · R RELOAD'}
           </small>
+          <small>SLOT {activeSlot} · PRESS {activeSlot} TO HOLSTER</small>
         </div>
       )}
       <span className="crosshair" aria-hidden="true">+</span>

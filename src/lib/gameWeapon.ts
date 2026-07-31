@@ -2,10 +2,12 @@ export {
   SHOTGUN_CABINET_NAME,
   SHOTGUN_PICKUP_NAME,
   equipStartingWeapon,
+  equipStartingWeapons,
   nearestWeaponCabinet,
   pickupWeapon,
   putBackWeapon,
   resetWeapons,
+  showWeaponSlot,
 } from './weaponPickup';
 export {
   fireWeapon,
@@ -13,4 +15,4 @@ export {
   setWeaponReloading,
   updateWeaponEffects,
 } from './weaponFire';
-export { type WeaponKind, WEAPON_CONFIG } from './weaponTypes';
+export { type WeaponKind, type WeaponSlot, WEAPON_CONFIG } from './weaponTypes';

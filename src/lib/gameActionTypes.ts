@@ -1,9 +1,9 @@
 import { type DoorHudState } from './gameInteraction';
-import { type WeaponKind } from './gameWeapon';
+import { type WeaponKind, type WeaponSlot } from './weaponTypes';
 
 export type WeaponHudState = {
   weapon: WeaponKind | null;
-  activeSlot: 1 | null;
+  activeSlot: WeaponSlot | null;
   ammo: number;
   capacity: number;
   nearbyWeapon: WeaponKind | null;

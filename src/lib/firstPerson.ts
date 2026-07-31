@@ -177,6 +177,7 @@ export function updatePlayer(
   time: number,
   delta: number,
   extraCollision?: (x: number, z: number) => boolean,
+  sprintSpeed = 1.75,
 ) {
   const forward = Number(controls.up) - Number(controls.down);
   const side = Number(controls.right) - Number(controls.left);
@@ -192,7 +193,7 @@ export function updatePlayer(
   sprint.stamina = THREE.MathUtils.clamp(sprint.stamina + recovery * delta, 0, 100);
   if (sprint.stamina === 0) sprint.exhausted = true;
   if (sprint.exhausted && sprint.stamina >= 35) sprint.exhausted = false;
-  const speedBoost = isSprinting ? 1.75 : 1;
+  const speedBoost = isSprinting ? sprintSpeed : 1;
   const stanceSpeed = crouched ? 0.58 : 1;
   const exhaustionSpeed = sprint.exhausted ? 0.62 : 1;
   const speed = (

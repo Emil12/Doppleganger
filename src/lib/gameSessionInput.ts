@@ -1,5 +1,6 @@
 import { Direction } from './firstPerson';
 import { handleGameKey } from './gameInput';
+import { type WeaponSlot } from './weaponTypes';
 
 type LookRef = {
   current: { yaw: number; pitch: number };
@@ -17,7 +18,7 @@ type SessionInputOptions = {
   onRefuse: () => void;
   onReload: () => void;
   onUseMedkit: () => void;
-  onSelectSlot: (slot: 1) => void;
+  onSelectSlot: (slot: WeaponSlot) => void;
   onAim: (aiming: boolean) => void;
   onShoot: () => void;
   onStart: () => void;

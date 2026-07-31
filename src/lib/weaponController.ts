@@ -4,6 +4,7 @@ import {
   setWeaponAiming,
   setWeaponReloading,
   type WeaponKind,
+  type WeaponSlot,
   WEAPON_CONFIG,
 } from './gameWeapon';
 import { type WeaponHudState, type WeaponSounds } from './gameActionTypes';
@@ -17,6 +18,7 @@ type WeaponControllerOptions = {
   getWeapon: () => WeaponKind | null;
   showWeapon: (state: WeaponHudState) => void;
   onShot: () => void;
+  selectWeaponSlot: (slot: WeaponSlot | null) => void;
 };
 
 export function createWeaponController(options: WeaponControllerOptions) {
@@ -26,8 +28,11 @@ export function createWeaponController(options: WeaponControllerOptions) {
     revolver: WEAPON_CONFIG.revolver.capacity,
     rifle: WEAPON_CONFIG.rifle.capacity,
     double_barrel: WEAPON_CONFIG.double_barrel.capacity,
+    flamethrower: WEAPON_CONFIG.flamethrower.capacity,
+    m16: WEAPON_CONFIG.m16.capacity,
+    glock: WEAPON_CONFIG.glock.capacity,
   };
-  let activeSlot: 1 | null = 1;
+  let activeSlot: WeaponSlot | null = 1;
   let nearbyWeapon: WeaponKind | null = null;
   let reloading = false;
   let reloadTimer: number | undefined;
@@ -42,9 +47,9 @@ export function createWeaponController(options: WeaponControllerOptions) {
     reloading,
   });
   const showCurrent = () => options.showWeapon(state(options.getWeapon()));
-  const showHeldWeapon = (visible: boolean) => {
+  const showHeldWeapon = () => {
     camera.children.forEach((child) => {
-      if (child.userData.weaponKind) child.visible = visible;
+      if (child.userData.weaponKind) child.visible = child.userData.weaponSlot === activeSlot;
     });
   };
   const stopReload = () => {
@@ -57,7 +62,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
   const onWeaponChange = (weapon: WeaponKind | null) => {
     stopReload();
     setWeaponAiming(camera, false);
-    showHeldWeapon(activeSlot === 1);
+    showHeldWeapon();
     options.showWeapon(state(weapon));
   };
   const onCabinetChange = (weapon: WeaponKind | null) => {
@@ -65,7 +70,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     showCurrent();
   };
   const shoot = () => {
-    if (activeSlot !== 1) return;
+    if (activeSlot === null) return;
     const weapon = options.getWeapon();
     const now = performance.now();
     if (!weapon || now < nextShotAt) return;
@@ -105,7 +110,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
   const reload = () => {
     const weapon = options.getWeapon();
     if (
-      activeSlot !== 1
+      activeSlot === null
       || !weapon
       || ammo[weapon] === WEAPON_CONFIG[weapon].capacity
       || reloading
@@ -117,23 +122,21 @@ export function createWeaponController(options: WeaponControllerOptions) {
     reloadTimer = window.setTimeout(loadShell, WEAPON_CONFIG[weapon].shellLoadMs);
   };
   const aim = (aiming: boolean) => {
-    if (activeSlot !== 1) return;
+    if (activeSlot === null) return;
     setWeaponAiming(camera, aiming);
   };
-  const selectSlot = (slot: 1) => {
+  const selectSlot = (slot: WeaponSlot) => {
     if (activeSlot === slot) {
       stopReload();
       setWeaponAiming(camera, false);
       activeSlot = null;
-      showHeldWeapon(false);
-      showCurrent();
+      options.selectWeaponSlot(null);
       return;
     }
     stopReload();
     setWeaponAiming(camera, false);
     activeSlot = slot;
-    showHeldWeapon(slot === 1);
-    showCurrent();
+    options.selectWeaponSlot(slot);
   };
   const reset = () => {
     stopReload();
@@ -142,6 +145,9 @@ export function createWeaponController(options: WeaponControllerOptions) {
     ammo.revolver = WEAPON_CONFIG.revolver.capacity;
     ammo.rifle = WEAPON_CONFIG.rifle.capacity;
     ammo.double_barrel = WEAPON_CONFIG.double_barrel.capacity;
+    ammo.flamethrower = WEAPON_CONFIG.flamethrower.capacity;
+    ammo.m16 = WEAPON_CONFIG.m16.capacity;
+    ammo.glock = WEAPON_CONFIG.glock.capacity;
     nextShotAt = 0;
     activeSlot = 1;
   };

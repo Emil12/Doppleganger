@@ -6,6 +6,7 @@ import {
   WEAPON_EFFECT_NAME,
 } from './weaponShotEffect';
 import { type WeaponKind, WEAPON_CONFIG } from './weaponTypes';
+import { createFlameEffect } from './flamethrowerEffect';
 
 const MAX_SHOT_DISTANCE = 45;
 const DEFAULT_FOV = 68;
@@ -51,7 +52,8 @@ export function fireWeapon(
       hit: Boolean(hit),
     });
   }
-  createShotEffect(scene, start, forward, impacts);
+  if (kind === 'flamethrower') createFlameEffect(scene, start, forward);
+  else createShotEffect(scene, start, forward, impacts);
   triggerWeaponRecoil(camera, kind);
   return hits;
 }
@@ -65,12 +67,12 @@ export function triggerWeaponRecoil(camera: THREE.Camera, kind: WeaponKind) {
 }
 
 export function setWeaponReloading(camera: THREE.Camera, reloading: boolean) {
-  const held = camera.children.find((child) => child.userData.weaponKind);
+  const held = camera.children.find((child) => child.visible && child.userData.weaponKind);
   if (held) held.userData.reloading = reloading;
 }
 
 export function setWeaponAiming(camera: THREE.Camera, aiming: boolean) {
-  const held = camera.children.find((child) => child.userData.weaponKind);
+  const held = camera.children.find((child) => child.visible && child.userData.weaponKind);
   camera.userData.weaponAiming = Boolean(held && aiming);
   if (held) held.userData.aiming = aiming;
 }
@@ -139,7 +141,9 @@ export function updateWeaponEffects(scene: THREE.Scene, delta: number) {
   for (const object of scene.children) {
     if (!(object instanceof THREE.PerspectiveCamera)) continue;
     updateAimCamera(object, delta);
-    object.children.forEach((child) => updateHeldWeapon(child, delta));
+    object.children.forEach((child) => {
+      if (child.visible) updateHeldWeapon(child, delta);
+    });
   }
   updateShotEffects(scene, delta);
 }

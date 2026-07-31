@@ -1,4 +1,5 @@
 import { Direction, directionForKey } from './firstPerson';
+import { type WeaponSlot } from './weaponTypes';
 
 export function handleGameKey(
   event: KeyboardEvent,
@@ -11,11 +12,16 @@ export function handleGameKey(
   onRefuse: () => void,
   onReload: () => void,
   onUseMedkit: () => void,
-  onSelectSlot: (slot: 1) => void,
+  onSelectSlot: (slot: WeaponSlot) => void,
 ) {
   if (event.code === 'Digit1' || event.code === 'Numpad1') {
     event.preventDefault();
     if (pressed && !event.repeat) onSelectSlot(1);
+    return;
+  }
+  if (event.code === 'Digit2' || event.code === 'Numpad2') {
+    event.preventDefault();
+    if (pressed && !event.repeat) onSelectSlot(2);
     return;
   }
   if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {

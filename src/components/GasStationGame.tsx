@@ -89,6 +89,7 @@ export function GasStationGame() {
   const customerSystemRef = useRef<ReturnType<typeof createCustomerSystem> | null>(null);
   const daylightCycleRef = useRef<ReturnType<typeof createDaylightCycle> | null>(null);
   const healthRef = useRef(100);
+  const maxHealthRef = useRef(100);
   const shiftNumberRef = useRef(1);
   const playingRef = useRef(false);
   const shiftStatsRef = useRef(createShiftStats());
@@ -109,7 +110,9 @@ export function GasStationGame() {
   const economyRef = useRef<GameEconomy>(EMPTY_GAME_ECONOMY);
   const economyBusyRef = useRef(false);
   const classMedkitsRef = useRef(0);
-  const equipClassWeaponRef = useRef<((kind: WeaponKind) => void) | null>(null);
+  const equipClassWeaponsRef = useRef<
+    ((kinds: readonly [WeaponKind, WeaponKind?]) => void) | null
+  >(null);
   const [settings, setSettings] = useState(loadGameSettings);
   const settingsRef = useRef(settings);
   const [menuOpen, setMenuOpen] = useState(true);
@@ -123,6 +126,7 @@ export function GasStationGame() {
   const [nearMedkit, setNearMedkit] = useState(false);
   const [checkoutKind, setCheckoutKind] = useState<CheckoutKind | null>(null);
   const [health, setHealth] = useState(100);
+  const [maxHealth, setMaxHealth] = useState(100);
   const [shiftNumber, setShiftNumber] = useState(1);
   const [shiftSummary, setShiftSummary] = useState<ShiftStats | null>(null);
   const [deathSummary, setDeathSummary] = useState<DeathSummaryStats | null>(null);
@@ -197,16 +201,20 @@ export function GasStationGame() {
     const config = PLAYER_CLASSES[economyRef.current.selectedClass];
     classMedkitsRef.current = config.startingMedkits;
     setClassMedkits(config.startingMedkits);
-    equipClassWeaponRef.current?.(config.weapon);
+    maxHealthRef.current = config.maxHealth;
+    healthRef.current = config.maxHealth;
+    setMaxHealth(config.maxHealth);
+    setHealth(config.maxHealth);
+    equipClassWeaponsRef.current?.(config.weapons);
   }, []);
 
   const usePortableMedkit = useCallback(async () => {
-    if (!playingRef.current || healthRef.current >= 100) return;
+    if (!playingRef.current || healthRef.current >= maxHealthRef.current) return;
     if (classMedkitsRef.current > 0) {
       classMedkitsRef.current -= 1;
       setClassMedkits(classMedkitsRef.current);
-      healthRef.current = 100;
-      setHealth(100);
+      healthRef.current = maxHealthRef.current;
+      setHealth(maxHealthRef.current);
       runStatsRef.current.medkitsUsed += 1;
       return;
     }
@@ -220,8 +228,8 @@ export function GasStationGame() {
       const nextEconomy = await useGameMedkit();
       if (!nextEconomy || !playingRef.current) return;
       applyEconomy(nextEconomy);
-      healthRef.current = 100;
-      setHealth(100);
+      healthRef.current = maxHealthRef.current;
+      setHealth(maxHealthRef.current);
       runStatsRef.current.medkitsUsed += 1;
     } finally {
       economyBusyRef.current = false;
@@ -419,8 +427,8 @@ export function GasStationGame() {
     shiftNumberRef.current = 1;
     setShiftNumber(1);
     setHidden(false);
-    healthRef.current = 100;
-    setHealth(100);
+    healthRef.current = maxHealthRef.current;
+    setHealth(maxHealthRef.current);
     setStamina(100);
     setExhausted(false);
     classMedkitsRef.current = 0;
@@ -454,7 +462,9 @@ export function GasStationGame() {
     nightmareStartedRef.current = false;
     nightmareAudioRef.current?.stop();
     healthRef.current = 100;
+    maxHealthRef.current = 100;
     setHealth(100);
+    setMaxHealth(100);
     setStamina(100);
     setExhausted(false);
     judgementPointsRef.current = MAX_JUDGEMENT_POINTS;
@@ -631,9 +641,9 @@ export function GasStationGame() {
       weaponAudio,
       customers,
       () => {
-        if (healthRef.current >= 100) return false;
-        healthRef.current = 100;
-        setHealth(100);
+        if (healthRef.current >= maxHealthRef.current) return false;
+        healthRef.current = maxHealthRef.current;
+        setHealth(maxHealthRef.current);
         runStatsRef.current.medkitsUsed += 1;
         return true;
       },
@@ -650,7 +660,7 @@ export function GasStationGame() {
       },
       queueJumpscare,
     );
-    equipClassWeaponRef.current = actions.equipWeapon;
+    equipClassWeaponsRef.current = actions.equipWeapons;
     const detachInput = attachGameSessionInput({
       canvas,
       look: lookRef,
@@ -721,6 +731,7 @@ export function GasStationGame() {
         time,
         delta,
         (x, z) => staffDoorBlocks(scene, x, z),
+        PLAYER_CLASSES[economyRef.current.selectedClass].sprintSpeed,
       );
       const moved =
         Math.abs(camera.position.x - previousX) + Math.abs(camera.position.z - previousZ) > 0.0001;
@@ -787,7 +798,7 @@ export function GasStationGame() {
       }
       if (dialogueTimerRef.current !== null) window.clearTimeout(dialogueTimerRef.current);
       resetWorldRef.current = null;
-      equipClassWeaponRef.current = null;
+      equipClassWeaponsRef.current = null;
       renderer.dispose();
     };
   }, [
@@ -811,6 +822,7 @@ export function GasStationGame() {
           stamina={stamina}
           exhausted={exhausted}
           health={health}
+          maxHealth={maxHealth}
           judgementPoints={judgementPoints}
           medkits={economy.medkits + classMedkits}
           weapon={weapon.weapon}

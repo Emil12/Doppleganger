@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import { type CheckoutKind } from './customerSystem';
 import {
   equipStartingWeapon,
+  equipStartingWeapons,
   nearestWeaponCabinet,
   pickupWeapon,
   putBackWeapon,
   resetWeapons,
+  showWeaponSlot,
   type WeaponKind,
+  type WeaponSlot,
 } from './gameWeapon';
 import { type DoorLabel, nearestDoor, toggleNearestDoor } from './staffDoor';
 import { useWallMedkit, wallMedkitDistance } from './wallMedkit';
@@ -44,7 +47,8 @@ type InteractionOptions = {
 
 export function createGameInteraction(options: InteractionOptions) {
   const { scene, camera, customers } = options;
-  let weapon: WeaponKind | null = null;
+  let weaponSlots: [WeaponKind | null, WeaponKind | null] = [null, null];
+  let activeSlot: WeaponSlot | null = 1;
   let nearCabinet: WeaponKind | null = null;
   let nearDoor = false;
   let nearMess = false;
@@ -53,11 +57,13 @@ export function createGameInteraction(options: InteractionOptions) {
   let doorOpen = true;
   let doorLabel: DoorHudState['label'] = 'STAFF DOOR';
 
+  const weaponKind = () => activeSlot ? weaponSlots[activeSlot - 1] : null;
+
   const distances = () => {
     const door = nearestDoor(scene, camera);
     return {
       door,
-      cabinet: nearestWeaponCabinet(scene, camera, weapon),
+      cabinet: nearestWeaponCabinet(scene, camera, weaponKind()),
       mess: customers.messDistance(camera),
       medkit: wallMedkitDistance(scene, camera),
       checkout: customers.checkoutDistance(camera),
@@ -92,16 +98,18 @@ export function createGameInteraction(options: InteractionOptions) {
       }
       return;
     }
+    const weapon = weaponKind();
     if (weapon) {
       if (!putBackWeapon(scene, camera, weapon)) return;
-      weapon = null;
+      if (activeSlot) weaponSlots[activeSlot - 1] = null;
       options.onWeaponChange(null);
       return;
     }
     const nextWeapon = nearby.cabinet.kind;
     if (!nextWeapon || !pickupWeapon(scene, camera, nextWeapon)) return;
-    weapon = nextWeapon;
-    options.onWeaponChange(weapon);
+    activeSlot ??= 1;
+    weaponSlots[activeSlot - 1] = nextWeapon;
+    options.onWeaponChange(nextWeapon);
   };
 
   const refuse = () => {
@@ -157,7 +165,8 @@ export function createGameInteraction(options: InteractionOptions) {
 
   const reset = () => {
     resetWeapons(scene, camera);
-    weapon = null;
+    weaponSlots = [null, null];
+    activeSlot = 1;
     nearCabinet = null;
     options.onWeaponChange(null);
     options.onCabinetChange(null);
@@ -166,9 +175,25 @@ export function createGameInteraction(options: InteractionOptions) {
   const equipWeapon = (kind: WeaponKind) => {
     resetWeapons(scene, camera);
     equipStartingWeapon(scene, camera, kind);
-    weapon = kind;
+    weaponSlots = [kind, null];
+    activeSlot = 1;
     options.onWeaponChange(kind);
     options.onCabinetChange(null);
+  };
+
+  const equipWeapons = (kinds: readonly [WeaponKind, WeaponKind?]) => {
+    resetWeapons(scene, camera);
+    equipStartingWeapons(scene, camera, kinds);
+    weaponSlots = [kinds[0], kinds[1] ?? null];
+    activeSlot = 1;
+    options.onWeaponChange(kinds[0]);
+    options.onCabinetChange(null);
+  };
+
+  const selectWeaponSlot = (slot: WeaponSlot | null) => {
+    activeSlot = slot;
+    showWeaponSlot(camera, slot);
+    options.onWeaponChange(weaponKind());
   };
 
   return {
@@ -177,6 +202,8 @@ export function createGameInteraction(options: InteractionOptions) {
     update,
     reset,
     equipWeapon,
-    weaponKind: () => weapon,
+    equipWeapons,
+    selectWeaponSlot,
+    weaponKind,
   };
 }

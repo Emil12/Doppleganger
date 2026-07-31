@@ -41,6 +41,7 @@ export function createGameActions(
     getWeapon: () => interaction.weaponKind(),
     showWeapon,
     onShot,
+    selectWeaponSlot: (slot) => interaction.selectWeaponSlot(slot),
   });
   interaction = createGameInteraction({
     scene,
@@ -70,6 +71,7 @@ export function createGameActions(
     aim: weapons.aim,
     selectSlot: weapons.selectSlot,
     equipWeapon: interaction.equipWeapon,
+    equipWeapons: interaction.equipWeapons,
     reset,
     updateProximity: interaction.update,
     dispose: weapons.dispose,

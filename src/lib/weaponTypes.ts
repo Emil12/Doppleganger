@@ -1,4 +1,13 @@
-export type WeaponKind = 'shotgun' | 'revolver' | 'rifle' | 'double_barrel';
+export type WeaponKind =
+  | 'shotgun'
+  | 'revolver'
+  | 'rifle'
+  | 'double_barrel'
+  | 'flamethrower'
+  | 'm16'
+  | 'glock';
+
+export type WeaponSlot = 1 | 2;
 
 export const WEAPON_CONFIG: Record<
   WeaponKind,
@@ -46,6 +55,33 @@ export const WEAPON_CONFIG: Record<
     shotDelayMs: 560,
     projectiles: 12,
     spread: 0.048,
+    damage: 1,
+  },
+  flamethrower: {
+    label: 'FLAMETHROWER',
+    capacity: 40,
+    shellLoadMs: 100,
+    shotDelayMs: 160,
+    projectiles: 7,
+    spread: 0.085,
+    damage: 1,
+  },
+  m16: {
+    label: 'M16 RIFLE',
+    capacity: 30,
+    shellLoadMs: 110,
+    shotDelayMs: 120,
+    projectiles: 1,
+    spread: 0.006,
+    damage: 1,
+  },
+  glock: {
+    label: 'GLOCK 17',
+    capacity: 17,
+    shellLoadMs: 140,
+    shotDelayMs: 260,
+    projectiles: 1,
+    spread: 0.009,
     damage: 1,
   },
 };
