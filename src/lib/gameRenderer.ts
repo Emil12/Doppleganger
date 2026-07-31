@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-const MAX_RENDER_WIDTH = 1800;
-const SHADOW_UPDATE_INTERVAL = 7;
+const MAX_RENDER_WIDTH = 1280;
+const SHADOW_UPDATE_INTERVAL = 10;
 
 type ShadowLight = THREE.DirectionalLight | THREE.PointLight | THREE.SpotLight;
 

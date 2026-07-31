@@ -1,4 +1,4 @@
-export type GameDifficulty = 'easy' | 'hard' | 'endless';
+export type GameDifficulty = 'easy' | 'hard' | 'nightmare' | 'endless';
 
 export type GameSettings = {
   bloodEnabled: boolean;
@@ -32,7 +32,9 @@ export function loadGameSettings(): GameSettings {
           : DEFAULT_GAME_SETTINGS.bloodEnabled,
       sensitivity: validSensitivity(parsed.sensitivity),
       difficulty:
-        parsed.difficulty === 'hard' || parsed.difficulty === 'endless'
+        parsed.difficulty === 'hard'
+        || parsed.difficulty === 'nightmare'
+        || parsed.difficulty === 'endless'
           ? parsed.difficulty
           : 'easy',
     };
@@ -43,6 +45,9 @@ export function loadGameSettings(): GameSettings {
 
 export function difficultyMultiplier(settings: GameSettings, shiftNumber = 1) {
   if (settings.difficulty === 'hard') return 2;
+  if (settings.difficulty === 'nightmare') {
+    return 1.6 + Math.max(0, shiftNumber - 1) * 0.14;
+  }
   if (settings.difficulty === 'endless') return 1 + Math.max(0, shiftNumber - 1) * 0.12;
   return 1;
 }

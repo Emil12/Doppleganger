@@ -1,17 +1,23 @@
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'wouter';
 import { type GameEconomy } from '../lib/gameEconomy';
 import { type GameSettings } from '../lib/gameSettings';
 import { formatFreePlayTime } from '../lib/freePlayTrial';
 import { PLAYER_CLASSES, type PlayerClassKind } from '../lib/playerClasses';
 import { HowToPlayMenu } from './HowToPlayMenu';
 import { MainMenuBackdrop } from './MainMenuBackdrop';
+import { MainMenuActions } from './MainMenuActions';
 import { MainMenuClasses } from './MainMenuClasses';
+import { MainMenuFriends } from './MainMenuFriends';
+import { MainMenuMode } from './MainMenuMode';
+import { MainMenuProfile } from './MainMenuProfile';
 import { MainMenuEffects } from './MainMenuEffects';
 import { MainMenuSettings } from './MainMenuSettings';
 import { MainMenuShop } from './MainMenuShop';
 import './MainMenu.css';
 import './MainMenuControls.css';
 import './MainMenuInterface.css';
+import './MainMenuSocial.css';
 
 type MainMenuProps = {
   settings: GameSettings;
@@ -21,11 +27,12 @@ type MainMenuProps = {
   onBuyMedkit: () => void;
   onBuyClass: (playerClass: PlayerClassKind) => void;
   onSelectClass: (playerClass: PlayerClassKind) => void;
+  onNicknameChange: (displayName: string) => Promise<boolean>;
   onStart: () => void;
   freePlayRemainingMs: number | null;
 };
 
-type MenuPanel = 'main' | 'settings' | 'shop' | 'classes' | 'howToPlay';
+type MenuPanel = 'main' | 'settings' | 'shop' | 'classes' | 'mode' | 'friends' | 'howToPlay';
 
 export function MainMenu({
   settings,
@@ -35,10 +42,12 @@ export function MainMenu({
   onBuyMedkit,
   onBuyClass,
   onSelectClass,
+  onNicknameChange,
   onStart,
   freePlayRemainingMs,
 }: MainMenuProps) {
   const [panel, setPanel] = useState<MenuPanel>('main');
+  const [, navigate] = useLocation();
   const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -81,7 +90,16 @@ export function MainMenu({
             )}
           </div>
           <p className="main-menu__eyebrow">HIGHWAY 09 · SIGNAL UNSTABLE</p>
-          <h2><span>DOPPLE</span>GANGER</h2>
+          <div className="main-menu__title-row">
+            <h2><span>DOPPLE</span>GANGER</h2>
+            <MainMenuProfile
+              displayName={economy.displayName}
+              signedIn={economy.signedIn}
+              busy={economyBusy}
+              onSave={onNicknameChange}
+              onSignIn={() => navigate('/auth')}
+            />
+          </div>
           <p className="main-menu__tagline">EVERY FACE IS A QUESTION.</p>
           <div className="main-menu__loadout">
             <span>MODE<strong>{settings.difficulty.toUpperCase()}</strong></span>
@@ -90,35 +108,18 @@ export function MainMenu({
           </div>
           <div key={panel} className="main-menu__view">
             {panel === 'main' && (
-              <div className="main-menu__actions">
-                <button className="main-menu__start" type="button" onClick={onStart}>
-                  <i aria-hidden="true">▶</i>
-                  <span>START SHIFT<small>Clock in. Check every face. Survive until dawn.</small></span>
-                  <kbd>01</kbd>
-                </button>
-                <div className="main-menu__action-grid">
-                  <button type="button" onClick={() => setPanel('shop')}>
-                    <i aria-hidden="true">▦</i>
-                    <span>SUPPLY SHOP<small>{economy.medkits} medkits owned</small></span>
-                    <kbd>02</kbd>
-                  </button>
-                  <button type="button" onClick={() => setPanel('classes')}>
-                    <i aria-hidden="true">♟</i>
-                    <span>CLASSES<small>Choose your loadout</small></span>
-                    <kbd>03</kbd>
-                  </button>
-                  <button type="button" onClick={() => setPanel('settings')}>
-                    <i aria-hidden="true">⚙</i>
-                    <span>SETTINGS<small>Video and controls</small></span>
-                    <kbd>04</kbd>
-                  </button>
-                  <button type="button" onClick={() => setPanel('howToPlay')}>
-                    <i aria-hidden="true">?</i>
-                    <span>HOW TO PLAY<small>Employee handbook</small></span>
-                    <kbd>05</kbd>
-                  </button>
-                </div>
-              </div>
+              <MainMenuActions
+                difficulty={settings.difficulty.toUpperCase()}
+                medkits={economy.medkits}
+                onStart={onStart}
+                onMultiplayer={() => navigate('/multiplayer')}
+                onShop={() => setPanel('shop')}
+                onClasses={() => setPanel('classes')}
+                onMode={() => setPanel('mode')}
+                onFriends={() => setPanel('friends')}
+                onSettings={() => setPanel('settings')}
+                onHandbook={() => setPanel('howToPlay')}
+              />
             )}
             {panel === 'settings' && (
               <MainMenuSettings
@@ -141,6 +142,19 @@ export function MainMenu({
                 busy={economyBusy}
                 onBuy={onBuyClass}
                 onSelect={onSelectClass}
+                onBack={() => setPanel('main')}
+              />
+            )}
+            {panel === 'mode' && (
+              <MainMenuMode
+                settings={settings}
+                onChange={onSettingsChange}
+                onBack={() => setPanel('main')}
+              />
+            )}
+            {panel === 'friends' && (
+              <MainMenuFriends
+                signedIn={economy.signedIn}
                 onBack={() => setPanel('main')}
               />
             )}

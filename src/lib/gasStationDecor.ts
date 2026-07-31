@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { markDistanceCullable } from './entityCulling';
+import { BREAKABLE_GLASS_PREFIX } from './breakableGlassSystem';
 
 type Size = [number, number, number];
 type Position = [number, number, number];
@@ -23,7 +24,7 @@ function box(
   scene.add(mesh);
 }
 
-function glass(scene: THREE.Scene, position: Position, width: number) {
+function glass(scene: THREE.Scene, position: Position, width: number, name: string) {
   const material = new THREE.MeshPhysicalMaterial({
     color: 0x6f9b8a,
     emissive: 0x152a21,
@@ -35,6 +36,7 @@ function glass(scene: THREE.Scene, position: Position, width: number) {
     side: THREE.DoubleSide,
   });
   const pane = new THREE.Mesh(new THREE.PlaneGeometry(width, 1.65), material);
+  pane.name = `${BREAKABLE_GLASS_PREFIX}${name}`;
   pane.position.set(...position);
   scene.add(pane);
 }
@@ -68,7 +70,7 @@ function addStars(scene: THREE.Scene) {
 
 function addStorefront(scene: THREE.Scene) {
   for (const x of [-5, 5]) {
-    glass(scene, [x, 2, -9.15], 6.4);
+    glass(scene, [x, 2, -9.15], 6.4, `storefront-${x}`);
     box(scene, 0x28332d, [6.6, 0.12, 0.14], [x, 2.86, -9.1]);
     box(scene, 0x28332d, [6.6, 0.12, 0.14], [x, 1.14, -9.1]);
     box(scene, 0x28332d, [0.12, 1.7, 0.14], [x, 2, -9.1]);

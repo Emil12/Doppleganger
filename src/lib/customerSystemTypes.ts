@@ -6,5 +6,6 @@ export type CustomerSystemOptions = {
   onInnocentShot: () => void;
   onDialogue: (dialogue: QueueDialogue) => void;
   isBloodEnabled: () => boolean;
+  isNightmareMode: () => boolean;
   getDifficultyMultiplier: () => number;
 };

@@ -14,12 +14,13 @@ import { addPolygonDetails } from './gasStationPolygons';
 import { PixelTexture, pixelMaterial } from './pixelTextures';
 import { addWallMedkit } from './wallMedkit';
 import { addCounterRadio } from './counterRadioModel';
+import { FUEL_PUMP_NAME_PREFIX } from './fuelPumpSystem';
 
 type Size = [number, number, number];
 type Position = [number, number, number];
 
 function box(
-  scene: THREE.Scene,
+  parent: THREE.Object3D,
   color: number,
   size: Size,
   position: Position,
@@ -41,7 +42,7 @@ function box(
   mesh.position.set(...position);
   mesh.castShadow = size[1] >= 0.25;
   mesh.receiveShadow = true;
-  scene.add(mesh);
+  parent.add(mesh);
   return mesh;
 }
 
@@ -118,11 +119,15 @@ function buildForecourt(scene: THREE.Scene) {
     box(scene, 0xb5ad91, [0.35, 4.5, 0.35], [x, 2.25, -4], 0, 'metal', [1, 3]);
   }
 
-  for (const x of PUMP_POSITIONS) {
-    box(scene, 0xd7cba4, [1, 1.7, 1.25], [x, 0.85, -4.3]);
-    box(scene, 0x294d37, [0.68, 0.52, 0.08], [x, 1.15, -3.64], 0x102b18);
-    box(scene, 0x222522, [0.2, 0.9, 0.2], [x + 0.65, 0.8, -4.3]);
-  }
+  PUMP_POSITIONS.forEach((x, index) => {
+    const pump = new THREE.Group();
+    pump.name = `${FUEL_PUMP_NAME_PREFIX}${index}`;
+    pump.position.set(x, 0, -4.3);
+    box(pump, 0xd7cba4, [1, 1.7, 1.25], [0, 0.85, 0]);
+    box(pump, 0x294d37, [0.68, 0.52, 0.08], [0, 1.15, 0.66], 0x102b18);
+    box(pump, 0x222522, [0.2, 0.9, 0.2], [0.65, 0.8, 0]);
+    scene.add(pump);
+  });
 
   box(scene, 0xb2a45e, [0.35, 6, 0.35], [12, 3, -8], 0, 'metal', [1, 4]);
   sign(scene, 'GAS STATION', [12, 6.3, -8], 4.4);

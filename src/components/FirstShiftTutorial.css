@@ -1,0 +1,127 @@
+.first-shift-tutorial {
+  position: absolute;
+  z-index: 40;
+  inset: 0;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 7, 5, 0.86);
+  backdrop-filter: blur(5px);
+}
+
+.first-shift-tutorial__card {
+  width: min(560px, 94vw);
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid rgba(202, 190, 130, 0.34);
+  display: grid;
+  gap: 15px;
+  color: #d8d6c1;
+  background: linear-gradient(145deg, rgba(25, 32, 27, 0.98), rgba(10, 14, 12, 0.98));
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.55);
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.09em;
+}
+
+.first-shift-tutorial header,
+.first-shift-tutorial footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.first-shift-tutorial header span {
+  color: #7e8a81;
+  font-size: 8px;
+}
+
+.first-shift-tutorial header b {
+  color: #d7bd62;
+}
+
+.first-shift-tutorial__progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.first-shift-tutorial__progress i {
+  height: 3px;
+  background: #303932;
+}
+
+.first-shift-tutorial__progress .is-complete {
+  background: #b9a451;
+}
+
+.first-shift-tutorial h2,
+.first-shift-tutorial p {
+  margin: 0;
+}
+
+.first-shift-tutorial h2 {
+  color: #eee6c7;
+  font-size: clamp(17px, 4vw, 25px);
+}
+
+.first-shift-tutorial p {
+  color: #9da69e;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.first-shift-tutorial__tips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.first-shift-tutorial__tips span {
+  padding: 9px 10px;
+  border: 1px solid rgba(157, 176, 160, 0.18);
+  color: #bdc9bd;
+  background: rgba(24, 34, 28, 0.72);
+  line-height: 1.4;
+}
+
+.first-shift-tutorial__tips.is-warning span {
+  border-color: rgba(180, 72, 61, 0.34);
+  color: #e0a098;
+  background: rgba(49, 17, 14, 0.54);
+}
+
+.first-shift-tutorial button {
+  min-width: 92px;
+  padding: 9px 12px;
+  border: 1px solid #58645b;
+  color: #aeb8af;
+  background: #141b17;
+  font: inherit;
+}
+
+.first-shift-tutorial button.is-primary {
+  border-color: #a8944a;
+  color: #f0d875;
+}
+
+.first-shift-tutorial button.is-skip {
+  min-width: auto;
+  border-color: transparent;
+  color: #7e8a81;
+  background: transparent;
+  font-size: 8px;
+}
+
+.first-shift-tutorial button.is-skip:hover {
+  color: #c7cec8;
+}
+
+.first-shift-tutorial button:disabled {
+  opacity: 0.28;
+}
+
+@media (max-width: 540px) {
+  .first-shift-tutorial__tips { grid-template-columns: 1fr; }
+  .first-shift-tutorial footer { flex-wrap: wrap; }
+  .first-shift-tutorial button.is-skip { order: 3; width: 100%; }
+}

@@ -87,12 +87,12 @@ export function createCustomerInteractions(
 
   const refuseNext = (camera: THREE.Camera) => {
     const customer = frontCustomer();
-    if (!customer?.model.idCard.visible) return false;
-    if (checkoutDistance(camera) >= 2.5) return false;
+    if (!customer?.model.idCard.visible) return null;
+    if (checkoutDistance(camera) >= 2.5) return null;
     customer.phase = 'leaving';
     customer.routeIndex = 0;
     customer.model.idCard.visible = false;
-    return true;
+    return customer.model.isAnomaly ? 'anomaly' : 'buyer';
   };
 
   const messDistance = (camera: THREE.Camera) => customers.reduce((nearest, customer) => {

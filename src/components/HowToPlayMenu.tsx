@@ -17,6 +17,7 @@ const controls = [
   ['F', 'REFUSE CUSTOMER'],
   ['1', 'HOLSTER WEAPON'],
   ['H', 'USE PORTABLE MEDKIT'],
+  ['T', 'STOP BOOMBOX'],
 ];
 
 export function HowToPlayMenu({ onBack }: HowToPlayMenuProps) {
@@ -39,8 +40,8 @@ export function HowToPlayMenu({ onBack }: HowToPlayMenuProps) {
         ))}
       </div>
       <small>
-        Hide inside the restroom when chased. Shooting innocent customers removes
-        judgement hearts.
+        Hide inside the restroom when chased. Do not shoot innocent customers or
+        glass: both remove judgement hearts. Fuel pumps explode after five hits.
       </small>
       <button type="button" onClick={onBack}>BACK</button>
     </div>

@@ -1,0 +1,113 @@
+.main-menu__title-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.menu-profile {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.main-menu .menu-profile__trigger {
+  min-width: 74px;
+  padding: 7px;
+  border: 1px solid rgba(185, 172, 118, 0.32);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: #cfc49a;
+  background: rgba(8, 12, 10, 0.78);
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+.main-menu .menu-profile__trigger:hover,
+.main-menu .menu-profile__trigger:focus-visible {
+  border-color: #bda957;
+  background: #202a23;
+  translate: 0;
+}
+
+.menu-profile__avatar {
+  width: 48px;
+  aspect-ratio: 1;
+  border: 1px solid #9f9155;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #171b17;
+  background: linear-gradient(145deg, #d2c68e, #796d3f);
+  box-shadow: 0 0 22px rgba(181, 164, 83, 0.14);
+  font: 900 22px "Courier New", monospace;
+}
+
+.menu-profile__identity {
+  width: 82px;
+  display: grid;
+  gap: 2px;
+}
+
+.menu-profile__identity strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-profile__identity small {
+  color: #747d75;
+  font-size: 6px;
+}
+
+.menu-profile__editor {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  padding: 12px;
+  border: 1px solid #827746;
+  display: grid;
+  gap: 8px;
+  background: rgba(10, 15, 12, 0.98);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.12em;
+}
+
+.menu-profile__editor input {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #515d53;
+  color: #eee3bd;
+  background: #141b16;
+  font: 700 11px "Courier New", monospace;
+  outline: none;
+}
+
+.menu-profile__editor input:focus { border-color: #bda957; }
+.menu-profile__editor small { color: #717b73; font-size: 7px; }
+.menu-profile__editor small.is-error { color: #d77a75; }
+
+.menu-profile__editor-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.main-menu .menu-profile__editor-actions button {
+  padding: 8px;
+  text-align: center;
+}
+
+.main-menu .menu-profile__editor-actions button:hover { translate: 0; }
+
+@media (max-width: 520px) {
+  .main-menu__title-row { align-items: end; }
+  .menu-profile__avatar { width: 40px; font-size: 18px; }
+  .main-menu .menu-profile__trigger { min-width: 64px; }
+  .menu-profile__identity { width: 66px; }
+}

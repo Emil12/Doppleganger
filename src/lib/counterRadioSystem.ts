@@ -59,13 +59,17 @@ export function createCounterRadioSystem(options: CounterRadioOptions) {
     return true;
   };
 
-  const reset = () => {
+  const stop = () => {
     audio.stop();
     selection = null;
-    nearby = false;
     setCounterRadioActive(scene, false);
-    options.showNearby(false);
     options.showSelection(null);
+  };
+
+  const reset = () => {
+    stop();
+    nearby = false;
+    options.showNearby(false);
   };
 
   const dispose = () => {
@@ -73,5 +77,5 @@ export function createCounterRadioSystem(options: CounterRadioOptions) {
     audio.dispose();
   };
 
-  return { interact, update, reset, dispose };
+  return { interact, stop, update, reset, dispose };
 }

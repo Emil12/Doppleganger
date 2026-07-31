@@ -9,6 +9,7 @@ export function handleGameKey(
   onSprint: (pressed: boolean) => void,
   onCrouch: () => void,
   onInteract: () => void,
+  onStopRadio: () => void,
   onRefuse: () => void,
   onReload: () => void,
   onUseMedkit: () => void,
@@ -52,6 +53,11 @@ export function handleGameKey(
   if (event.code === 'KeyH') {
     event.preventDefault();
     if (pressed && !event.repeat) onUseMedkit();
+    return;
+  }
+  if (event.code === 'KeyT') {
+    event.preventDefault();
+    if (pressed && !event.repeat) onStopRadio();
     return;
   }
   if (event.code === 'KeyF') {

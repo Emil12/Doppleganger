@@ -10,6 +10,7 @@ import {
 } from './gameWeapon';
 import { type WeaponHudState, type WeaponSounds } from './gameActionTypes';
 import { type CustomerInteractions } from './gameInteraction';
+import { createWeaponAmmo, type StartingAmmo } from './weaponAmmo';
 
 type WeaponControllerOptions = {
   scene: THREE.Scene;
@@ -19,20 +20,13 @@ type WeaponControllerOptions = {
   getWeapon: () => WeaponKind | null;
   showWeapon: (state: WeaponHudState) => void;
   onShot: () => void;
+  onWorldShot: (objects: readonly THREE.Object3D[]) => void;
   selectWeaponSlot: (slot: WeaponSlot | null) => void;
 };
 
 export function createWeaponController(options: WeaponControllerOptions) {
   const { scene, camera, customers, sounds } = options;
-  const ammo: Record<WeaponKind, number> = {
-    shotgun: WEAPON_CONFIG.shotgun.capacity,
-    revolver: WEAPON_CONFIG.revolver.capacity,
-    rifle: WEAPON_CONFIG.rifle.capacity,
-    double_barrel: WEAPON_CONFIG.double_barrel.capacity,
-    flamethrower: WEAPON_CONFIG.flamethrower.capacity,
-    m16: WEAPON_CONFIG.m16.capacity,
-    glock: WEAPON_CONFIG.glock.capacity,
-  };
+  const ammo = createWeaponAmmo();
   let activeSlot: WeaponSlot | null = 1;
   let nearbyWeapon: WeaponKind | null = null;
   let reloading = false;
@@ -43,8 +37,8 @@ export function createWeaponController(options: WeaponControllerOptions) {
   const state = (weapon: WeaponKind | null): WeaponHudState => ({
     weapon,
     activeSlot,
-    ammo: weapon ? ammo[weapon] : 0,
-    capacity: weapon ? WEAPON_CONFIG[weapon].capacity : 0,
+    ammo: weapon ? ammo.get(weapon) : 0,
+    capacity: weapon ? ammo.capacity(weapon) : 0,
     nearbyWeapon,
     reloading,
   });
@@ -82,18 +76,19 @@ export function createWeaponController(options: WeaponControllerOptions) {
     const now = performance.now();
     if (!weapon || now < nextShotAt) return;
     if (reloading) {
-      if (ammo[weapon] === 0) return;
+      if (ammo.isEmpty(weapon)) return;
       stopReload();
     }
-    if (ammo[weapon] === 0) {
+    if (ammo.isEmpty(weapon)) {
       if (playSound) sounds.empty();
       stopFiring();
       return;
     }
-    ammo[weapon] -= 1;
+    ammo.spend(weapon);
     nextShotAt = now + WEAPON_CONFIG[weapon].shotDelayMs;
     options.onShot();
     const hits = fireWeapon(scene, camera, weapon);
+    options.onWorldShot(hits.map((hit) => hit.object));
     hits.forEach((hit) => {
       for (let damage = 0; damage < WEAPON_CONFIG[weapon].damage; damage += 1) {
         customers.hitCustomer(hit.object, now);
@@ -119,8 +114,8 @@ export function createWeaponController(options: WeaponControllerOptions) {
     reloadTimer = undefined;
     const weapon = options.getWeapon();
     if (!reloading || !weapon) return;
-    ammo[weapon] = Math.min(ammo[weapon] + 1, WEAPON_CONFIG[weapon].capacity);
-    if (ammo[weapon] === WEAPON_CONFIG[weapon].capacity) {
+    ammo.loadOne(weapon);
+    if (ammo.isFull(weapon)) {
       reloading = false;
       setWeaponReloading(camera, false);
     } else {
@@ -133,7 +128,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     if (
       activeSlot === null
       || !weapon
-      || ammo[weapon] === WEAPON_CONFIG[weapon].capacity
+      || ammo.isFull(weapon)
       || reloading
     ) return;
     stopFiring();
@@ -164,13 +159,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     stopFiring();
     stopReload();
     setWeaponAiming(camera, false);
-    ammo.shotgun = WEAPON_CONFIG.shotgun.capacity;
-    ammo.revolver = WEAPON_CONFIG.revolver.capacity;
-    ammo.rifle = WEAPON_CONFIG.rifle.capacity;
-    ammo.double_barrel = WEAPON_CONFIG.double_barrel.capacity;
-    ammo.flamethrower = WEAPON_CONFIG.flamethrower.capacity;
-    ammo.m16 = WEAPON_CONFIG.m16.capacity;
-    ammo.glock = WEAPON_CONFIG.glock.capacity;
+    ammo.configure();
     nextShotAt = 0;
     activeSlot = 1;
   };
@@ -182,6 +171,12 @@ export function createWeaponController(options: WeaponControllerOptions) {
     reload,
     aim,
     selectSlot,
+    configureAmmo: (startingAmmo: StartingAmmo = {}) => ammo.configure(startingAmmo),
+    refillAmmo: () => {
+      stopReload();
+      ammo.refill();
+      showCurrent();
+    },
     reset,
     dispose: () => {
       stopFiring();

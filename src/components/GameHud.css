@@ -2,23 +2,23 @@
   position: absolute;
   top: 9px;
   left: 9px;
-  min-width: 64px;
-  padding: 6px 9px;
+  min-width: 52px;
+  padding: 4px 7px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
   display: flex;
-  gap: 7px;
+  gap: 5px;
   align-items: baseline;
   color: #8f9a91;
   background: rgba(13, 18, 15, 0.72);
-  font: 700 8px "Courier New", monospace;
+  font: 700 7px "Courier New", monospace;
   letter-spacing: 0.12em;
   pointer-events: none;
 }
 
 .shift-badge strong {
   color: #e3c86f;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .judgement-points {
@@ -104,40 +104,40 @@
   position: absolute;
   bottom: 14px;
   left: 14px;
-  width: min(260px, 48%);
-  padding: 8px 10px;
+  width: min(180px, 42%);
+  padding: 5px 7px;
   border: 1px solid rgba(208, 220, 197, 0.18);
   border-radius: 6px;
   color: #d7ddc8;
   background: rgba(12, 17, 14, 0.72);
-  font: 700 9px "Courier New", monospace;
+  font: 700 8px "Courier New", monospace;
   letter-spacing: 0.12em;
   backdrop-filter: blur(4px);
 }
 
 .health-meter {
   position: absolute;
-  bottom: 58px;
+  bottom: 48px;
   left: 14px;
-  width: min(260px, 48%);
-  padding: 8px 10px;
+  width: min(180px, 42%);
+  padding: 5px 7px;
   border: 1px solid rgba(208, 220, 197, 0.18);
   border-radius: 6px;
   color: #d7ddc8;
   background: rgba(12, 17, 14, 0.72);
-  font: 700 9px "Courier New", monospace;
+  font: 700 8px "Courier New", monospace;
   letter-spacing: 0.12em;
   backdrop-filter: blur(4px);
 }
 
 .health-meter__header {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
 }
 
 .health-meter__track {
-  height: 5px;
+  height: 4px;
   overflow: hidden;
   background: #252d28;
 }
@@ -150,13 +150,13 @@
 }
 
 .sprint-meter__header {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
 }
 
 .sprint-meter__track {
-  height: 5px;
+  height: 4px;
   overflow: hidden;
   background: #252d28;
 }
@@ -295,16 +295,16 @@
   .sprint-meter {
     bottom: auto;
     left: max(10px, env(safe-area-inset-left, 0px));
-    width: min(210px, 48vw);
-    padding: 7px 9px;
+    width: min(160px, 42vw);
+    padding: 5px 7px;
   }
 
   .health-meter {
-    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 49px);
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 42px);
   }
 
   .sprint-meter {
-    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 91px);
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 76px);
   }
 
   .portable-medkit {
@@ -329,4 +329,28 @@
   .sprint-meter--exhausted {
     animation: none;
   }
+}
+
+.multiplayer-downed {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+  color: #f4d9d1;
+  background: radial-gradient(circle, rgba(80, 5, 5, 0.2), rgba(10, 2, 2, 0.72));
+  pointer-events: none;
+}
+
+.multiplayer-downed strong {
+  color: #ff6b5f;
+  font-size: clamp(28px, 6vw, 64px);
+  letter-spacing: 0.12em;
+}
+
+.multiplayer-downed span,
+.multiplayer-downed small {
+  letter-spacing: 0.08em;
 }

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { lowPolyBox } from './lowPolyGeometry';
 import { markCullable } from './entityCulling';
+import { BREAKABLE_GLASS_PREFIX } from './breakableGlassSystem';
 
 const FREEZER_X = -7.78;
 const FREEZER_Z = [-20.5, -15.8] as const;
@@ -45,6 +46,7 @@ function buildFreezer(z: number) {
     side: THREE.DoubleSide,
   });
   const glass = new THREE.Mesh(new THREE.PlaneGeometry(2.75, 2.2), glassMaterial);
+  glass.name = `${BREAKABLE_GLASS_PREFIX}freezer-${z}`;
   glass.rotation.y = Math.PI / 2;
   glass.position.set(0.66, 1.45, localZ);
   group.add(glass);

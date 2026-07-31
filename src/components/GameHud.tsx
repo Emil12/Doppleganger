@@ -27,6 +27,7 @@ type GameHudProps = {
   nearMess: boolean;
   nearMedkit: boolean;
   nearRadio: boolean;
+  nearDownedTeammate: string | null;
   radioSelection: RadioSelection | null;
   checkoutKind: CheckoutKind | null;
   doorOpen: boolean;
@@ -54,6 +55,7 @@ export function GameHud({
   nearMess,
   nearMedkit,
   nearRadio,
+  nearDownedTeammate,
   radioSelection,
   checkoutKind,
   doorOpen,
@@ -122,16 +124,23 @@ export function GameHud({
           <strong>× {medkits}</strong>
         </div>
       )}
-      {nearRadio && (
-        <p className="pickup-prompt pickup-prompt--radio">E · NEXT MEME TAPE</p>
+      {nearDownedTeammate && (
+        <p className="pickup-prompt pickup-prompt--healing">
+          E · REVIVE {nearDownedTeammate} · USE 1 MEDKIT
+        </p>
       )}
-      {!nearRadio && nearMess && (
+      {!nearDownedTeammate && nearRadio && (
+        <p className="pickup-prompt pickup-prompt--radio">
+          E · NEXT MEME TAPE · T STOP
+        </p>
+      )}
+      {!nearDownedTeammate && !nearRadio && nearMess && (
         <p className="pickup-prompt pickup-prompt--danger">E · CLEAN THE MESS</p>
       )}
-      {!nearRadio && !nearMess && nearMedkit && (
+      {!nearDownedTeammate && !nearRadio && !nearMess && nearMedkit && (
         <p className="pickup-prompt pickup-prompt--healing">E · USE MEDKIT</p>
       )}
-      {!nearRadio && !nearMess && !nearMedkit && checkoutKind && (
+      {!nearDownedTeammate && !nearRadio && !nearMess && !nearMedkit && checkoutKind && (
         <p className={`pickup-prompt ${
           checkoutKind === 'anomaly' ? 'pickup-prompt--anomaly' : 'pickup-prompt--payment'
         }`}>
@@ -140,10 +149,10 @@ export function GameHud({
             : 'ID SHOWN · E ACCEPT · F REFUSE'}
         </p>
       )}
-      {!nearRadio && !nearMess && !nearMedkit && !checkoutKind && nearDoor && (
+      {!nearDownedTeammate && !nearRadio && !nearMess && !nearMedkit && !checkoutKind && nearDoor && (
         <p className="pickup-prompt">E · {doorOpen ? 'CLOSE' : 'OPEN'} {doorLabel}</p>
       )}
-      {!nearRadio && !nearMess && !nearMedkit && !checkoutKind && !nearDoor && nearbyWeapon && (
+      {!nearDownedTeammate && !nearRadio && !nearMess && !nearMedkit && !checkoutKind && !nearDoor && nearbyWeapon && (
         <p className="pickup-prompt">
           {weapon ? `E · PUT BACK ${weaponLabel}` : `E · PICK UP ${nearbyWeaponLabel}`}
         </p>

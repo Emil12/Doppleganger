@@ -26,7 +26,7 @@ export function MainMenuShop({
           <div className="menu-shop__medkit" aria-hidden="true">+</div>
           <div>
             <strong>PORTABLE MEDKIT</strong>
-            <small>Press H during a shift to restore full health.</small>
+            <small>Press H to heal fully (50 HP in Nightmare mode).</small>
             <span>OWNED · {economy.medkits}</span>
           </div>
           <button

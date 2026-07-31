@@ -15,6 +15,7 @@ type SessionInputOptions = {
   onSprint: (pressed: boolean) => void;
   onCrouch: () => void;
   onInteract: () => void;
+  onStopRadio: () => void;
   onRefuse: () => void;
   onReload: () => void;
   onUseMedkit: () => void;
@@ -33,6 +34,7 @@ export function attachGameSessionInput({
   onSprint,
   onCrouch,
   onInteract,
+  onStopRadio,
   onRefuse,
   onReload,
   onUseMedkit,
@@ -53,6 +55,7 @@ export function attachGameSessionInput({
       onSprint,
       onCrouch,
       onInteract,
+      onStopRadio,
       onRefuse,
       onReload,
       onUseMedkit,

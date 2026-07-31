@@ -12,7 +12,7 @@ import {
   type WeaponSlot,
 } from './gameWeapon';
 import { type DoorLabel, nearestDoor, toggleNearestDoor } from './staffDoor';
-import { useWallMedkit, wallMedkitDistance } from './wallMedkit';
+import { respawnWallMedkit, useWallMedkit, wallMedkitDistance } from './wallMedkit';
 
 export type DoorHudState = {
   near: boolean;
@@ -27,7 +27,7 @@ export type CustomerInteractions = {
   checkoutDistance: (camera: THREE.Camera) => number;
   checkoutKind: (camera: THREE.Camera) => CheckoutKind | null;
   serveNext: (camera: THREE.Camera) => CheckoutKind | null;
-  refuseNext: (camera: THREE.Camera) => boolean;
+  refuseNext: (camera: THREE.Camera) => CheckoutKind | null;
 };
 
 type InteractionOptions = {
@@ -113,7 +113,9 @@ export function createGameInteraction(options: InteractionOptions) {
   };
 
   const refuse = () => {
-    if (customers.refuseNext(camera)) options.showCheckout(null);
+    const refused = customers.refuseNext(camera);
+    if (refused) options.showCheckout(null);
+    return refused;
   };
 
   const update = () => {
@@ -170,6 +172,7 @@ export function createGameInteraction(options: InteractionOptions) {
     nearCabinet = null;
     options.onWeaponChange(null);
     options.onCabinetChange(null);
+    respawnWallMedkit(scene);
   };
 
   const equipWeapon = (kind: WeaponKind) => {
@@ -199,6 +202,7 @@ export function createGameInteraction(options: InteractionOptions) {
   return {
     interact,
     refuse,
+    respawnMedkit: () => respawnWallMedkit(scene),
     update,
     reset,
     equipWeapon,

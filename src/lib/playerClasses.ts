@@ -1,4 +1,5 @@
 import { type WeaponKind } from './weaponTypes';
+import { type StartingAmmo } from './weaponAmmo';
 
 export type PlayerClassKind =
   | 'attendant'
@@ -7,6 +8,7 @@ export type PlayerClassKind =
   | 'medic'
   | 'retired_hunter'
   | 'soldier'
+  | 'policeman'
   | 'flamer';
 
 export type PlayerClassConfig = {
@@ -15,6 +17,7 @@ export type PlayerClassConfig = {
   icon: string;
   cost: number;
   weapons: readonly [WeaponKind, WeaponKind?];
+  startingAmmo?: StartingAmmo;
   startingMedkits: number;
   maxHealth: number;
   sprintSpeed: number;
@@ -27,6 +30,7 @@ export const PLAYER_CLASS_KINDS: PlayerClassKind[] = [
   'medic',
   'retired_hunter',
   'soldier',
+  'policeman',
   'flamer',
 ];
 
@@ -87,6 +91,17 @@ export const PLAYER_CLASSES: Record<PlayerClassKind, PlayerClassConfig> = {
     icon: 'S',
     cost: 150,
     weapons: ['m16', 'glock'],
+    startingMedkits: 0,
+    maxHealth: 100,
+    sprintSpeed: 1.75,
+  },
+  policeman: {
+    name: 'POLICEMAN',
+    description: 'Starts every run with a Glock and a 20-round magazine.',
+    icon: 'P',
+    cost: 35,
+    weapons: ['glock'],
+    startingAmmo: { glock: 20 },
     startingMedkits: 0,
     maxHealth: 100,
     sprintSpeed: 1.75,

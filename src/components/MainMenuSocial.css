@@ -1,0 +1,95 @@
+.mode-panel,
+.friends-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.mode-panel header,
+.friends-panel header {
+  display: flex;
+  justify-content: space-between;
+  color: #c9bd83;
+  font: 700 10px "Courier New", monospace;
+  letter-spacing: 0.11em;
+}
+
+.mode-panel header span,
+.friends-panel header span,
+.friends-panel > small {
+  color: #778179;
+  font-size: 8px;
+}
+
+.mode-panel__choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.mode-panel__choices button {
+  min-height: 66px;
+  padding: 10px;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+}
+
+.mode-panel__choices button.is-selected {
+  border-color: #c3ac58;
+  color: #fff0a5;
+  background: #35432f;
+}
+
+.mode-panel__choices small {
+  color: #778179;
+  font-size: 8px;
+}
+
+.friends-panel form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+}
+
+.friends-panel input {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(164, 180, 165, 0.24);
+  color: #e2d8aa;
+  background: rgba(6, 10, 8, 0.78);
+  font: 700 10px "Courier New", monospace;
+}
+
+.friends-panel__list {
+  max-height: 190px;
+  display: grid;
+  gap: 5px;
+  overflow-y: auto;
+}
+
+.friends-panel__list article,
+.friends-panel__signin {
+  padding: 8px 10px;
+  border: 1px solid rgba(164, 180, 165, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #c7bc8b;
+  font: 700 9px "Courier New", monospace;
+}
+
+.friends-panel__list article button,
+.friends-panel__signin a {
+  padding: 6px 10px;
+}
+
+.friends-panel__list i {
+  color: #719a7b;
+  font-style: normal;
+  font-size: 8px;
+}
+
+@media (max-width: 520px) {
+  .mode-panel__choices { grid-template-columns: 1fr; }
+}

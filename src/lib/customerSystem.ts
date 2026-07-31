@@ -21,6 +21,7 @@ import { createCustomerSpawner } from './customerSpawner';
 import { type Customer } from './customerTypes';
 import { type CustomerSystemOptions } from './customerSystemTypes';
 import { spawnImmortalInspector } from './inspectorModel';
+import { nightmareCustomerIsAnomaly } from './nightmareMode';
 
 export { type CheckoutKind } from './customerTypes';
 
@@ -34,6 +35,7 @@ export function createCustomerSystem(
     onInnocentShot,
     onDialogue,
     isBloodEnabled,
+    isNightmareMode,
     getDifficultyMultiplier,
   } = options;
   const customers: Customer[] = [];
@@ -52,11 +54,18 @@ export function createCustomerSystem(
   let nextCustomerAt = Number.POSITIVE_INFINITY;
   let nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
   let nightmareSpawnsRemaining = 0;
+  let nightmareCustomerNumber = 0;
   const nextDelay = () => Math.max(
-    3_500,
-    randomCustomerDelay() / getDifficultyMultiplier(),
+    isNightmareMode() ? 1_750 : 3_500,
+    randomCustomerDelay() / getDifficultyMultiplier() / (isNightmareMode() ? 2 : 1),
   );
   const spawnCustomer = createCustomerSpawner(scene, customers, getDifficultyMultiplier);
+  const selectNextAnomaly = () => {
+    if (!isNightmareMode()) return selectAnomaly();
+    const isAnomaly = nightmareCustomerIsAnomaly(nightmareCustomerNumber);
+    nightmareCustomerNumber += 1;
+    return isAnomaly;
+  };
 
   const clearCustomers = () => {
     customers.forEach(({ model, splatter, bloodTrail }) => {
@@ -74,8 +83,9 @@ export function createCustomerSystem(
     started = true;
     queueDialogue.reset();
     nightmareSpawnsRemaining = 0;
+    nightmareCustomerNumber = 0;
     nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
-    spawnCustomer();
+    spawnCustomer(selectNextAnomaly());
     nextCustomerAt = time + nextDelay();
   };
 
@@ -92,6 +102,17 @@ export function createCustomerSystem(
     nightmareSpawnsRemaining = 0;
     nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
     nextCustomerAt = Number.POSITIVE_INFINITY;
+  };
+
+  const attackAllAnomalies = () => {
+    const time = performance.now();
+    customers.forEach((customer) => {
+      if (!customer.model.isAnomaly || customer.diedAt !== null) return;
+      customer.phase = 'attacking';
+      customer.model.idCard.visible = false;
+      makeAnomalyHostile(customer.model);
+      prepareAnomalyChase(customer, time);
+    });
   };
 
   const update = (time: number, delta: number, camera: THREE.PerspectiveCamera) => {
@@ -111,7 +132,7 @@ export function createCustomerSystem(
       }
     }
     if (time >= nextCustomerAt) {
-      spawnCustomer(selectAnomaly());
+      spawnCustomer(selectNextAnomaly());
       nextCustomerAt = time + nextDelay();
     }
     queue.length = 0;
@@ -164,6 +185,7 @@ export function createCustomerSystem(
     prepareAudio: anomalyAudio.prepare,
     start,
     startNightmareWave,
+    attackAllAnomalies,
     summonInspector,
     update,
     ...interactions,

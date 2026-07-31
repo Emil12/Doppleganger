@@ -10,6 +10,19 @@ import { createGameRenderer } from '../lib/gameRenderer';
 import { attachGameSessionInput } from '../lib/gameSessionInput';
 import { createPlayerAvatarSystem } from '../lib/playerAvatar';
 import { type WeaponKind, updateWeaponEffects } from '../lib/gameWeapon';
+import { type StartingAmmo } from '../lib/weaponAmmo';
+import {
+  NIGHTMARE_AMMO,
+  NIGHTMARE_END_SHIFT,
+  NIGHTMARE_REFUSAL_LIMIT,
+  NIGHTMARE_REWARD,
+  nightmareMedkitHealth,
+} from '../lib/nightmareMode';
+import { type MultiplayerRoomSession } from '../lib/multiplayerRoom';
+import {
+  createMultiplayerSystem,
+  type MultiplayerConnection,
+} from '../lib/multiplayerSystem';
 import { createWeaponAudio } from '../lib/weaponAudio';
 import {
   createNightmareAudio,
@@ -23,6 +36,12 @@ import { updateAtmosphere } from '../lib/gasStationAtmosphere';
 import { createFootstepAudio } from '../lib/footstepAudio';
 import { createCounterRadioSystem } from '../lib/counterRadioSystem';
 import { type RadioSelection } from '../lib/counterRadioAudio';
+import { createFuelPumpSystem } from '../lib/fuelPumpSystem';
+import { createBreakableGlassSystem } from '../lib/breakableGlassSystem';
+import {
+  hasSeenFirstShiftTutorial,
+  rememberFirstShiftTutorial,
+} from '../lib/firstShiftTutorial';
 import { createCustomerSystem, type CheckoutKind } from '../lib/customerSystem';
 import { type QueueDialogue as QueueDialogueState } from '../lib/customerDialogue';
 import { createDaylightCycle } from '../lib/daylightCycle';
@@ -35,6 +54,7 @@ import {
   loadGameEconomy,
   type GameEconomy,
   selectGameClass,
+  updateGameDisplayName,
   useGameMedkit,
 } from '../lib/gameEconomy';
 import {
@@ -64,17 +84,21 @@ import {
 } from '../lib/staffDoor';
 import { AccountRequired } from './AccountRequired';
 import { DeathScreen } from './DeathScreen';
+import { FirstShiftTutorial } from './FirstShiftTutorial';
 import { GameHud } from './GameHud';
 import { InspectorExecution } from './InspectorExecution';
 import { Jumpscare, type JumpscareKind } from './Jumpscare';
 import { MainMenu } from './MainMenu';
 import { MobileTouchControls } from './MobileTouchControls';
+import { MultiplayerStatus } from './MultiplayerStatus';
 import { NightmareOverlay } from './NightmareOverlay';
 import { QueueDialogue } from './QueueDialogue';
 import { ShiftSummary } from './ShiftSummary';
+import { useHealthRegeneration } from './useHealthRegeneration';
 
 const MAX_JUDGEMENT_POINTS = 5;
 const ANOMALY_HIT_DAMAGE = 40;
+const TARGET_FRAME_INTERVAL_MS = 1000 / 80;
 
 function requestDesktopPointerLock(canvas: HTMLCanvasElement | null) {
   if (
@@ -84,7 +108,17 @@ function requestDesktopPointerLock(canvas: HTMLCanvasElement | null) {
   void canvas.requestPointerLock();
 }
 
-export function GasStationGame() {
+type GasStationGameProps = {
+  multiplayerRoom?: MultiplayerRoomSession;
+  onKickedMultiplayer?: () => void;
+  onLeaveMultiplayer?: () => void;
+};
+
+export function GasStationGame({
+  multiplayerRoom,
+  onKickedMultiplayer,
+  onLeaveMultiplayer,
+}: GasStationGameProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pressedRef = useRef<Record<Direction, boolean>>({
     up: false,
@@ -119,18 +153,29 @@ export function GasStationGame() {
   const inspectorExecutingRef = useRef(false);
   const inspectorExecutionTimerRef = useRef<number | null>(null);
   const dialogueTimerRef = useRef<number | null>(null);
-  const menuOpenRef = useRef(true);
+  const menuOpenRef = useRef(!multiplayerRoom);
+  const multiplayerRoomRef = useRef(multiplayerRoom);
+  const multiplayerDownedRef = useRef(false);
+  const multiplayerRevivesRef = useRef(0);
   const economyRef = useRef<GameEconomy>(EMPTY_GAME_ECONOMY);
   const economyBusyRef = useRef(false);
   const classMedkitsRef = useRef(0);
+  const nightmareRefusalsRef = useRef(0);
   const actionsRef = useRef<ReturnType<typeof createGameActions> | null>(null);
   const radioSystemRef = useRef<ReturnType<typeof createCounterRadioSystem> | null>(null);
   const equipClassWeaponsRef = useRef<
-    ((kinds: readonly [WeaponKind, WeaponKind?]) => void) | null
+    ((kinds: readonly [WeaponKind, WeaponKind?], startingAmmo?: StartingAmmo) => void) | null
   >(null);
   const [settings, setSettings] = useState(loadGameSettings);
   const settingsRef = useRef(settings);
-  const [menuOpen, setMenuOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(!multiplayerRoom);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [multiplayerStatus, setMultiplayerStatus] = useState<MultiplayerConnection>('connecting');
+  const [multiplayerPlayers, setMultiplayerPlayers] = useState(multiplayerRoom ? 1 : 0);
+  const [multiplayerDowned, setMultiplayerDowned] = useState(false);
+  const [multiplayerRevives, setMultiplayerRevives] = useState(0);
+  const [nearDownedTeammate, setNearDownedTeammate] = useState<string | null>(null);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [stamina, setStamina] = useState(100);
@@ -159,6 +204,13 @@ export function GasStationGame() {
   const [classMedkits, setClassMedkits] = useState(0);
   const [trialRemainingMs, setTrialRemainingMs] = useState(loadFreePlayRemainingMs);
   const trialRemainingRef = useRef(trialRemainingMs);
+
+  useHealthRegeneration(
+    playing && !inspectorExecuting && !multiplayerDowned,
+    healthRef,
+    maxHealthRef,
+    setHealth,
+  );
 
   const applyEconomy = useCallback((nextEconomy: GameEconomy) => {
     const remaining = applyFreePlayHours(nextEconomy.freePlayHours);
@@ -217,6 +269,21 @@ export function GasStationGame() {
     }
   }, [applyEconomy]);
 
+  const changeNickname = useCallback(async (displayName: string) => {
+    if (economyBusyRef.current) return false;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      const nextEconomy = await updateGameDisplayName(displayName);
+      if (!nextEconomy) return false;
+      applyEconomy(nextEconomy);
+      return true;
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
   const prepareClassLoadout = useCallback(() => {
     const config = PLAYER_CLASSES[economyRef.current.selectedClass];
     classMedkitsRef.current = config.startingMedkits;
@@ -225,41 +292,91 @@ export function GasStationGame() {
     healthRef.current = config.maxHealth;
     setMaxHealth(config.maxHealth);
     setHealth(config.maxHealth);
-    equipClassWeaponsRef.current?.(config.weapons);
+    const ammo = settingsRef.current.difficulty === 'nightmare'
+      ? NIGHTMARE_AMMO
+      : config.startingAmmo;
+    equipClassWeaponsRef.current?.(config.weapons, ammo);
   }, []);
 
-  const usePortableMedkit = useCallback(async () => {
-    if (!playingRef.current || healthRef.current >= maxHealthRef.current) return;
+  const consumePortableMedkit = useCallback(async () => {
     if (classMedkitsRef.current > 0) {
       classMedkitsRef.current -= 1;
       setClassMedkits(classMedkitsRef.current);
-      healthRef.current = maxHealthRef.current;
-      setHealth(maxHealthRef.current);
       runStatsRef.current.medkitsUsed += 1;
-      return;
+      return true;
     }
     if (
       economyBusyRef.current
       || economyRef.current.medkits < 1
-    ) return;
+    ) return false;
     economyBusyRef.current = true;
     setEconomyBusy(true);
     try {
       const nextEconomy = await useGameMedkit();
-      if (!nextEconomy || !playingRef.current) return;
+      if (!nextEconomy || !playingRef.current) return false;
       applyEconomy(nextEconomy);
-      healthRef.current = maxHealthRef.current;
-      setHealth(maxHealthRef.current);
       runStatsRef.current.medkitsUsed += 1;
+      return true;
     } finally {
       economyBusyRef.current = false;
       setEconomyBusy(false);
     }
   }, [applyEconomy]);
 
+  const usePortableMedkit = useCallback(async () => {
+    if (
+      !playingRef.current
+      || multiplayerDownedRef.current
+      || healthRef.current >= maxHealthRef.current
+    ) return;
+    if (!await consumePortableMedkit()) return;
+    healthRef.current = settingsRef.current.difficulty === 'nightmare'
+      ? nightmareMedkitHealth(healthRef.current, maxHealthRef.current)
+      : maxHealthRef.current;
+    setHealth(healthRef.current);
+  }, [consumePortableMedkit]);
+
   const setControl = useCallback((direction: Direction, pressed: boolean) => {
-    if (!playingRef.current || inspectorExecutingRef.current) return;
+    if (!playingRef.current || inspectorExecutingRef.current || multiplayerDownedRef.current) return;
     pressedRef.current[direction] = pressed;
+  }, []);
+
+  const stopMultiplayerControls = useCallback(() => {
+    sprintRef.current = false;
+    jumpRequestedRef.current = false;
+    Object.keys(pressedRef.current).forEach((key) => {
+      pressedRef.current[key as Direction] = false;
+    });
+    actionsRef.current?.shoot(false);
+    actionsRef.current?.aim(false);
+  }, []);
+
+  const handleMultiplayerDamage = useCallback((damage: number) => {
+    if (!playingRef.current || multiplayerDownedRef.current) return;
+    const appliedDamage = Math.min(damage, healthRef.current);
+    healthRef.current -= appliedDamage;
+    runStatsRef.current.damageTaken += appliedDamage;
+    setHealth(healthRef.current);
+    if (healthRef.current > 0) return;
+    stopMultiplayerControls();
+    if (multiplayerRevivesRef.current >= 3) {
+      playingRef.current = false;
+      setPlaying(false);
+      onKickedMultiplayer?.();
+      return;
+    }
+    multiplayerDownedRef.current = true;
+    setMultiplayerDowned(true);
+  }, [onKickedMultiplayer, stopMultiplayerControls]);
+
+  const handleMultiplayerRevive = useCallback(() => {
+    if (!multiplayerDownedRef.current || multiplayerRevivesRef.current >= 3) return;
+    multiplayerRevivesRef.current += 1;
+    multiplayerDownedRef.current = false;
+    healthRef.current = Math.min(50, maxHealthRef.current);
+    setMultiplayerRevives(multiplayerRevivesRef.current);
+    setMultiplayerDowned(false);
+    setHealth(healthRef.current);
   }, []);
 
   const startGame = useCallback(() => {
@@ -271,6 +388,7 @@ export function GasStationGame() {
       || (!economyRef.current.signedIn && trialRemainingRef.current <= 0)
     ) return;
     runStatsRef.current = createRunStats();
+    nightmareRefusalsRef.current = 0;
     runStartedAtRef.current = performance.now();
     prepareClassLoadout();
     footstepAudioRef.current?.enable();
@@ -288,6 +406,22 @@ export function GasStationGame() {
     setCoinReward(0);
     menuOpenRef.current = false;
     setMenuOpen(false);
+    if (shiftNumberRef.current === 1 && !hasSeenFirstShiftTutorial()) {
+      setTutorialOpen(true);
+      return;
+    }
+    startGame();
+    requestDesktopPointerLock(canvasRef.current);
+  }, [startGame]);
+
+  useEffect(() => {
+    if (!multiplayerRoom || !sceneReady || economyBusy || playingRef.current) return;
+    startGame();
+  }, [economyBusy, multiplayerRoom, sceneReady, startGame]);
+
+  const completeTutorial = useCallback(() => {
+    rememberFirstShiftTutorial();
+    setTutorialOpen(false);
     startGame();
     requestDesktopPointerLock(canvasRef.current);
   }, [startGame]);
@@ -321,12 +455,15 @@ export function GasStationGame() {
     const mode = settingsRef.current.difficulty;
     const completedRun =
       (mode === 'easy' && shiftNumber === 10)
-      || (mode === 'hard' && shiftNumber === 25);
+      || (mode === 'hard' && shiftNumber === 25)
+      || (mode === 'nightmare' && shiftNumber === NIGHTMARE_END_SHIFT);
     const reward =
       mode === 'easy' && shiftNumber === 10
         ? 5
         : mode === 'hard' && shiftNumber === 25
           ? 10
+          : mode === 'nightmare' && shiftNumber === NIGHTMARE_END_SHIFT
+            ? NIGHTMARE_REWARD
           : mode === 'endless' && shiftNumber % 10 === 0 ? 5 : 0;
     setRunComplete(completedRun);
     setCoinReward(reward);
@@ -425,8 +562,12 @@ export function GasStationGame() {
       shiftNumberRef.current = nextShift;
       return nextShift;
     });
-    healthRef.current = 100;
-    setHealth(100);
+    healthRef.current = maxHealthRef.current;
+    setHealth(maxHealthRef.current);
+    multiplayerDownedRef.current = false;
+    setMultiplayerDowned(false);
+    actionsRef.current?.respawnMedkit();
+    if (settingsRef.current.difficulty === 'nightmare') actionsRef.current?.refillAmmo();
     footstepAudioRef.current?.enable();
     weaponAudioRef.current?.enable();
     nightmareAudioRef.current?.enable();
@@ -451,8 +592,14 @@ export function GasStationGame() {
     setHealth(maxHealthRef.current);
     setStamina(100);
     setExhausted(false);
+    multiplayerDownedRef.current = false;
+    multiplayerRevivesRef.current = 0;
+    setMultiplayerDowned(false);
+    setMultiplayerRevives(0);
+    setNearDownedTeammate(null);
     classMedkitsRef.current = 0;
     setClassMedkits(0);
+    nightmareRefusalsRef.current = 0;
     judgementPointsRef.current = MAX_JUDGEMENT_POINTS;
     inspectorSummonedRef.current = false;
     setJudgementPoints(MAX_JUDGEMENT_POINTS);
@@ -460,9 +607,21 @@ export function GasStationGame() {
     nightmareAudioRef.current?.stop();
     stopInspectorExecution();
     resetWorldRef.current?.();
+    if (multiplayerRoomRef.current && onLeaveMultiplayer) {
+      onLeaveMultiplayer();
+      return;
+    }
     menuOpenRef.current = true;
     setMenuOpen(true);
-  }, [stopInspectorExecution]);
+  }, [onLeaveMultiplayer, stopInspectorExecution]);
+
+  const leaveMultiplayer = useCallback(() => {
+    playingRef.current = false;
+    sprintRef.current = false;
+    setPlaying(false);
+    if (document.pointerLockElement) void document.exitPointerLock();
+    returnToMenu();
+  }, [returnToMenu]);
 
   const restartRun = useCallback(() => {
     if (!economyRef.current.signedIn && trialRemainingRef.current <= 0) return;
@@ -470,6 +629,7 @@ export function GasStationGame() {
     shiftSummaryRef.current = null;
     deathSummaryRef.current = null;
     runStatsRef.current = createRunStats();
+    nightmareRefusalsRef.current = 0;
     runStartedAtRef.current = performance.now();
     setShiftSummary(null);
     setDeathSummary(null);
@@ -487,6 +647,10 @@ export function GasStationGame() {
     setMaxHealth(100);
     setStamina(100);
     setExhausted(false);
+    multiplayerDownedRef.current = false;
+    multiplayerRevivesRef.current = 0;
+    setMultiplayerDowned(false);
+    setMultiplayerRevives(0);
     judgementPointsRef.current = MAX_JUDGEMENT_POINTS;
     inspectorSummonedRef.current = false;
     stopInspectorExecution();
@@ -579,8 +743,18 @@ export function GasStationGame() {
     camera.position.set(0, 1.65, 8);
     camera.rotation.order = 'YXZ';
     const playerAvatar = createPlayerAvatarSystem(scene, camera);
+    const multiplayer = createMultiplayerSystem(scene, {
+      onDamage: handleMultiplayerDamage,
+      onRevive: handleMultiplayerRevive,
+      showStatus: (status, playerCount) => {
+        setMultiplayerStatus(status);
+        setMultiplayerPlayers(playerCount);
+      },
+    });
+    if (multiplayerRoomRef.current) multiplayer.connect(multiplayerRoomRef.current);
     const entityCulling = createEntityCullingSystem(scene, camera);
     let previousTime = performance.now();
+    let frameAccumulator = 0;
     let frame = 0;
     let wasHidden = false;
     let nextIdleRenderAt = 0;
@@ -593,8 +767,17 @@ export function GasStationGame() {
     const footsteps = createFootstepAudio();
     const weaponAudio = createWeaponAudio();
     let customers: ReturnType<typeof createCustomerSystem>;
+    const loseJudgement = () => {
+      judgementPointsRef.current = Math.max(0, judgementPointsRef.current - 1);
+      setJudgementPoints(judgementPointsRef.current);
+      if (judgementPointsRef.current === 0 && !inspectorSummonedRef.current) {
+        inspectorSummonedRef.current = true;
+        customers.summonInspector();
+      }
+    };
     customers = createCustomerSystem(scene, {
       onPlayerHit: (inspectorAttack) => {
+        if (multiplayerDownedRef.current) return;
         if (inspectorAttack) {
           beginInspectorExecution();
           return;
@@ -616,14 +799,7 @@ export function GasStationGame() {
           setJudgementPoints(judgementPointsRef.current);
         }
       },
-      onInnocentShot: () => {
-        judgementPointsRef.current = Math.max(0, judgementPointsRef.current - 1);
-        setJudgementPoints(judgementPointsRef.current);
-        if (judgementPointsRef.current === 0 && !inspectorSummonedRef.current) {
-          inspectorSummonedRef.current = true;
-          customers.summonInspector();
-        }
-      },
+      onInnocentShot: loseJudgement,
       onDialogue: (dialogue) => {
         setQueueDialogue(dialogue);
         if (dialogueTimerRef.current !== null) {
@@ -635,6 +811,7 @@ export function GasStationGame() {
         }, 3_600);
       },
       isBloodEnabled: () => settingsRef.current.bloodEnabled,
+      isNightmareMode: () => settingsRef.current.difficulty === 'nightmare',
       getDifficultyMultiplier: () => difficultyMultiplier(
         settingsRef.current,
         shiftNumberRef.current,
@@ -647,6 +824,18 @@ export function GasStationGame() {
       showNearby: setNearRadio,
       showSelection: setRadioSelection,
     });
+    const fuelPumps = createFuelPumpSystem(scene, () => {
+      if (healthRef.current === 0) return;
+      weaponAudio.fire('double_barrel');
+      const blastDamage = economyRef.current.selectedClass === 'flamer' ? 100 : 80;
+      const damage = Math.min(blastDamage, healthRef.current);
+      healthRef.current -= damage;
+      runStatsRef.current.damageTaken += damage;
+      setHealth(healthRef.current);
+      navigator.vibrate?.([120, 50, 180]);
+      if (healthRef.current === 0) finishRun();
+    });
+    const breakableGlass = createBreakableGlassSystem(scene, loseJudgement);
     footstepAudioRef.current = footsteps;
     weaponAudioRef.current = weaponAudio;
     const audioWarmupTimers = [
@@ -673,8 +862,10 @@ export function GasStationGame() {
       customers,
       () => {
         if (healthRef.current >= maxHealthRef.current) return false;
-        healthRef.current = maxHealthRef.current;
-        setHealth(maxHealthRef.current);
+        healthRef.current = settingsRef.current.difficulty === 'nightmare'
+          ? nightmareMedkitHealth(healthRef.current, maxHealthRef.current)
+          : maxHealthRef.current;
+        setHealth(healthRef.current);
         runStatsRef.current.medkitsUsed += 1;
         return true;
       },
@@ -690,38 +881,66 @@ export function GasStationGame() {
         runStatsRef.current.purchases += 1;
       },
       queueJumpscare,
+      (objects) => {
+        fuelPumps.hit(objects);
+        breakableGlass.hit(objects);
+        multiplayer.hit(objects);
+      },
     );
     actionsRef.current = actions;
     equipClassWeaponsRef.current = actions.equipWeapons;
+    setSceneReady(true);
     const detachInput = attachGameSessionInput({
       canvas,
       look: lookRef,
       getSensitivity: () => settingsRef.current.sensitivity,
       onControl: setControl,
       onJump: () => {
-        if (playingRef.current) jumpRequestedRef.current = true;
+        if (playingRef.current && !multiplayerDownedRef.current) jumpRequestedRef.current = true;
       },
       onSprint: (value) => {
-        if (playingRef.current) sprintRef.current = value;
+        if (playingRef.current && !multiplayerDownedRef.current) sprintRef.current = value;
       },
       onCrouch: () => {
-        if (playingRef.current) crouchedRef.current = !crouchedRef.current;
+        if (playingRef.current && !multiplayerDownedRef.current) {
+          crouchedRef.current = !crouchedRef.current;
+        }
       },
       onInteract: () => {
-        if (!playingRef.current) return;
+        if (!playingRef.current || multiplayerDownedRef.current) return;
+        const teammate = multiplayer.nearbyDowned(camera.position);
+        if (teammate) {
+          void consumePortableMedkit().then((consumed) => {
+            if (consumed) multiplayer.revive(teammate.playerId);
+          });
+          return;
+        }
         if (!radio.interact()) actions.interact();
       },
-      onRefuse: () => { if (playingRef.current) actions.refuse(); },
-      onReload: () => { if (playingRef.current) actions.reload(); },
+      onStopRadio: () => {
+        if (playingRef.current) radio.stop();
+      },
+      onRefuse: () => {
+        if (!playingRef.current || multiplayerDownedRef.current) return;
+        const refused = actions.refuse();
+        if (settingsRef.current.difficulty !== 'nightmare' || refused !== 'anomaly') return;
+        nightmareRefusalsRef.current += 1;
+        if (nightmareRefusalsRef.current > NIGHTMARE_REFUSAL_LIMIT) {
+          customers.attackAllAnomalies();
+        }
+      },
+      onReload: () => {
+        if (playingRef.current && !multiplayerDownedRef.current) actions.reload();
+      },
       onUseMedkit: usePortableMedkit,
       onSelectSlot: (slot) => {
-        if (playingRef.current) actions.selectSlot(slot);
+        if (playingRef.current && !multiplayerDownedRef.current) actions.selectSlot(slot);
       },
       onAim: (aiming) => {
-        actions.aim(playingRef.current && aiming);
+        actions.aim(playingRef.current && !multiplayerDownedRef.current && aiming);
       },
       onShoot: (shooting) => {
-        actions.shoot(playingRef.current && shooting);
+        actions.shoot(playingRef.current && !multiplayerDownedRef.current && shooting);
       },
       onStart: startGame,
     });
@@ -736,14 +955,22 @@ export function GasStationGame() {
       crouchedRef.current = false;
       actions.reset();
       radio.reset();
+      fuelPumps.reset();
+      breakableGlass.reset();
     };
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     resize();
 
     const animate = (time: number) => {
-      const delta = Math.min((time - previousTime) / 1000, 0.04);
+      frameAccumulator += time - previousTime;
       previousTime = time;
+      if (frameAccumulator < TARGET_FRAME_INTERVAL_MS - 1) {
+        frame = requestAnimationFrame(animate);
+        return;
+      }
+      const delta = Math.min(frameAccumulator / 1000, 0.04);
+      frameAccumulator %= TARGET_FRAME_INTERVAL_MS;
       if (!playingRef.current) {
         if (time >= nextIdleRenderAt) {
           renderer.render();
@@ -789,8 +1016,15 @@ export function GasStationGame() {
       lookRef.current.pitch = THREE.MathUtils.clamp(lookRef.current.pitch, -1.2, 1.2);
       camera.rotation.set(lookRef.current.pitch, yaw, 0);
       playerAvatar.update(yaw, time);
+      multiplayer.update(camera, yaw, time, delta, {
+        downed: multiplayerDownedRef.current,
+        health: healthRef.current,
+        revivesUsed: multiplayerRevivesRef.current,
+      });
       updateAtmosphere(scene, delta);
       updateWeaponEffects(scene, delta);
+      fuelPumps.update(delta);
+      breakableGlass.update(delta);
       updateStaffDoors(scene, delta);
       customers.update(time, delta, camera);
       if (time >= nextCullingUpdateAt) {
@@ -809,6 +1043,7 @@ export function GasStationGame() {
       if (time >= nextProximityUpdateAt) {
         actions.updateProximity();
         radio.update();
+        setNearDownedTeammate(multiplayer.nearbyDowned(camera.position)?.playerName ?? null);
         nextProximityUpdateAt = time + 50;
       }
       playerAvatar.renderMirror((mirrorCamera, target) => {
@@ -828,11 +1063,14 @@ export function GasStationGame() {
       detachInput();
       actions.dispose();
       playerAvatar.dispose();
+      multiplayer.dispose();
       entityCulling.dispose();
       footsteps.dispose();
       weaponAudio.dispose();
       customers.dispose();
       radio.dispose();
+      fuelPumps.dispose();
+      breakableGlass.dispose();
       if (footstepAudioRef.current === footsteps) footstepAudioRef.current = null;
       if (weaponAudioRef.current === weaponAudio) weaponAudioRef.current = null;
       if (customerSystemRef.current === customers) customerSystemRef.current = null;
@@ -849,11 +1087,15 @@ export function GasStationGame() {
       resetWorldRef.current = null;
       equipClassWeaponsRef.current = null;
       if (actionsRef.current === actions) actionsRef.current = null;
+      setSceneReady(false);
       renderer.dispose();
     };
   }, [
     beginInspectorExecution,
+    consumePortableMedkit,
     finishRun,
+    handleMultiplayerDamage,
+    handleMultiplayerRevive,
     queueJumpscare,
     setControl,
     startGame,
@@ -885,6 +1127,7 @@ export function GasStationGame() {
           nearMess={nearMess}
           nearMedkit={nearMedkit}
           nearRadio={nearRadio}
+          nearDownedTeammate={nearDownedTeammate}
           radioSelection={radioSelection}
           checkoutKind={checkoutKind}
           doorOpen={door.open}
@@ -903,10 +1146,26 @@ export function GasStationGame() {
           />
         )}
         {deathSummary && <DeathScreen stats={deathSummary} onRestart={restartRun} />}
+        {multiplayerDowned && (
+          <div className="multiplayer-downed" role="status">
+            <strong>YOU ARE DOWN</strong>
+            <span>WAIT FOR A TEAMMATE WITH A MEDKIT</span>
+            <small>{3 - multiplayerRevives} REVIVES LEFT</small>
+          </div>
+        )}
         {jumpscare && <Jumpscare key={jumpscare.id} kind={jumpscare.kind} />}
         {nightmareActive && <NightmareOverlay bloodEnabled={settings.bloodEnabled} />}
         {inspectorExecuting && <InspectorExecution />}
         {queueDialogue && <QueueDialogue dialogue={queueDialogue} />}
+        {tutorialOpen && <FirstShiftTutorial onComplete={completeTutorial} />}
+        {multiplayerRoom && (
+          <MultiplayerStatus
+            code={multiplayerRoom.code}
+            playerCount={multiplayerPlayers}
+            status={multiplayerStatus}
+            onLeave={leaveMultiplayer}
+          />
+        )}
       </div>
       {menuOpen && (
         <MainMenu
@@ -917,6 +1176,7 @@ export function GasStationGame() {
           onBuyMedkit={() => { void purchaseMedkit(); }}
           onBuyClass={(playerClass) => { void purchaseClass(playerClass); }}
           onSelectClass={(playerClass) => { void chooseClass(playerClass); }}
+          onNicknameChange={changeNickname}
           onStart={startFromMenu}
           freePlayRemainingMs={
             economy.signedIn && economy.freePlayHours <= 50 ? null : trialRemainingMs
@@ -941,7 +1201,9 @@ export function GasStationGame() {
             lookRef.current.pitch -= y * 0.005 * sensitivity;
           }}
           onShoot={(pressed) => {
-            actionsRef.current?.shoot(playingRef.current && pressed);
+            actionsRef.current?.shoot(
+              playingRef.current && !multiplayerDownedRef.current && pressed,
+            );
           }}
         />
       )}

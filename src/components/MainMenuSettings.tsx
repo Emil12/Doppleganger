@@ -38,21 +38,6 @@ export function MainMenuSettings({ settings, onChange, onBack }: MainMenuSetting
           })}
         />
       </label>
-      <div className="difficulty-setting">
-        <span>GAME MODE<small>Easy 10 · Hard 25 · Endless keeps scaling</small></span>
-        <div className="difficulty-setting__choices">
-          {(['easy', 'hard', 'endless'] as const).map((difficulty) => (
-            <button
-              key={difficulty}
-              type="button"
-              className={settings.difficulty === difficulty ? 'is-selected' : ''}
-              onClick={() => onChange({ ...settings, difficulty })}
-            >
-              {difficulty.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
       <button type="button" onClick={onBack}>BACK</button>
     </div>
   );

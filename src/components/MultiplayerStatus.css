@@ -1,0 +1,46 @@
+.multiplayer-status {
+  position: absolute;
+  z-index: 12;
+  top: 10px;
+  right: 10px;
+  padding: 7px 8px;
+  border: 1px solid rgba(106, 160, 119, 0.42);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #b9cbbb;
+  background: rgba(10, 18, 13, 0.84);
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.08em;
+}
+
+.multiplayer-status > i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #72b383;
+  box-shadow: 0 0 9px rgba(88, 174, 112, 0.5);
+}
+
+.multiplayer-status.is-connecting > i { background: #c3a955; }
+.multiplayer-status.is-error > i { background: #c45750; }
+.multiplayer-status span { display: grid; gap: 2px; }
+.multiplayer-status small { color: #718078; font-size: 6px; }
+.multiplayer-status strong { color: #bdd5c1; font-size: 8px; }
+
+.multiplayer-status button {
+  padding: 5px 7px;
+  border: 1px solid #48564d;
+  color: #aab4ac;
+  background: #151d18;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .multiplayer-status {
+    top: auto;
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) + 210px);
+  }
+}

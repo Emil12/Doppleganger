@@ -3,7 +3,7 @@ import { lowPolyBox } from './lowPolyGeometry';
 
 export const COUNTER_RADIO_NAME = 'checkout-counter-radio';
 export const COUNTER_RADIO_DISPLAY_NAME = 'checkout-counter-radio-display';
-export const COUNTER_RADIO_POSITION = [6.15, 1.18, -15.2] as const;
+export const COUNTER_RADIO_POSITION = [7.25, 0.03, -15.2] as const;
 
 type Position = [number, number, number];
 type Size = [number, number, number];
@@ -101,6 +101,7 @@ export function addCounterRadio(scene: THREE.Scene) {
   radio.name = COUNTER_RADIO_NAME;
   radio.position.set(...COUNTER_RADIO_POSITION);
   radio.rotation.y = -Math.PI / 2;
+  radio.scale.setScalar(0.55);
 
   boxPart(radio, [2.75, 1.08, 0.72], [0, 0.57, 0], 0x9a936f);
   boxPart(radio, [2.58, 0.88, 0.05], [0, 0.55, 0.385], 0x242927);

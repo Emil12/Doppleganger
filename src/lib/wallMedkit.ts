@@ -41,6 +41,11 @@ export function wallMedkitDistance(scene: THREE.Scene, camera: THREE.Camera) {
   return medkit.position.distanceTo(camera.position);
 }
 
+export function respawnWallMedkit(scene: THREE.Scene) {
+  const medkit = scene.getObjectByName(MEDKIT_NAME);
+  if (medkit) medkit.visible = true;
+}
+
 export function useWallMedkit(
   scene: THREE.Scene,
   camera: THREE.Camera,
