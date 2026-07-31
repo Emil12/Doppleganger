@@ -5,9 +5,11 @@ import {
   updateShotEffects,
   WEAPON_EFFECT_NAME,
 } from './weaponShotEffect';
-import { type WeaponKind } from './weaponTypes';
+import { type WeaponKind, WEAPON_CONFIG } from './weaponTypes';
 
 const MAX_SHOT_DISTANCE = 45;
+const DEFAULT_FOV = 68;
+const AIM_FOV = 56;
 
 function shotTargets(scene: THREE.Scene, camera: THREE.Camera) {
   return scene.children.filter((child) => child !== camera && child.name !== WEAPON_EFFECT_NAME);
@@ -27,25 +29,19 @@ function shotDirection(
   return direction.addScaledVector(right, spreadX).addScaledVector(up, spreadY).normalize();
 }
 
-export function fireRevolver(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
-  const direction = shotDirection(camera);
-  const start = camera.position.clone().addScaledVector(direction, 0.58);
-  const hit = new THREE.Raycaster(camera.position, direction, 0.6, MAX_SHOT_DISTANCE)
-    .intersectObjects(shotTargets(scene, camera), true)[0];
-  const end = hit?.point ?? camera.position.clone().addScaledVector(direction, MAX_SHOT_DISTANCE);
-  createShotEffect(scene, start, direction, [{ point: end, hit: Boolean(hit) }], 'revolver');
-  triggerWeaponRecoil(camera, 'revolver');
-  return hit ? [hit] : [];
-}
-
-export function fireShotgun(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
+export function fireWeapon(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+  kind: WeaponKind,
+) {
+  const config = WEAPON_CONFIG[kind];
   const hits: THREE.Intersection[] = [];
   const impacts: ShotImpact[] = [];
   const forward = shotDirection(camera);
   const start = camera.position.clone().addScaledVector(forward, 0.82);
-  for (let pellet = 0; pellet < 9; pellet += 1) {
+  for (let pellet = 0; pellet < config.projectiles; pellet += 1) {
     const angle = pellet * 2.399;
-    const radius = pellet === 0 ? 0 : 0.018 + (pellet % 3) * 0.009;
+    const radius = pellet === 0 ? 0 : config.spread * (0.5 + (pellet % 3) * 0.25);
     const direction = shotDirection(camera, Math.cos(angle) * radius, Math.sin(angle) * radius);
     const hit = new THREE.Raycaster(camera.position, direction, 0.7, MAX_SHOT_DISTANCE)
       .intersectObjects(shotTargets(scene, camera), true)[0];
@@ -55,8 +51,8 @@ export function fireShotgun(scene: THREE.Scene, camera: THREE.PerspectiveCamera)
       hit: Boolean(hit),
     });
   }
-  createShotEffect(scene, start, forward, impacts, 'shotgun');
-  triggerWeaponRecoil(camera, 'shotgun');
+  createShotEffect(scene, start, forward, impacts);
+  triggerWeaponRecoil(camera, kind);
   return hits;
 }
 
@@ -65,14 +61,18 @@ export function triggerWeaponRecoil(camera: THREE.Camera, kind: WeaponKind) {
   if (!held) return;
   held.userData.recoil = 1;
   held.userData.recoilSide = (Math.random() - 0.5) * 0.16;
-  if (kind === 'revolver') {
-    held.userData.chamberAngle = Number(held.userData.chamberAngle ?? 0) + Math.PI / 3;
-  }
+  held.userData.actionCycle = 1;
 }
 
 export function setWeaponReloading(camera: THREE.Camera, reloading: boolean) {
   const held = camera.children.find((child) => child.userData.weaponKind);
   if (held) held.userData.reloading = reloading;
+}
+
+export function setWeaponAiming(camera: THREE.Camera, aiming: boolean) {
+  const held = camera.children.find((child) => child.userData.weaponKind);
+  camera.userData.weaponAiming = Boolean(held && aiming);
+  if (held) held.userData.aiming = aiming;
 }
 
 function updateHeldWeapon(object: THREE.Object3D, delta: number) {
@@ -83,37 +83,62 @@ function updateHeldWeapon(object: THREE.Object3D, delta: number) {
   const recoil = Math.max(0, Number(object.userData.recoil ?? 0) - delta * 5.5);
   const reloadTarget = object.userData.reloading === true ? 1 : 0;
   const reload = THREE.MathUtils.lerp(Number(object.userData.reloadPose ?? 0), reloadTarget, 0.12);
+  const aimTarget = object.userData.aiming === true && reloadTarget === 0 ? 1 : 0;
+  const aim = THREE.MathUtils.lerp(Number(object.userData.aimPose ?? 0), aimTarget, 0.18);
   const recoilSide = Number(object.userData.recoilSide ?? 0);
+  const actionRemaining = Math.max(0, Number(object.userData.actionCycle ?? 0) - delta * 1.65);
+  const actionMotion = Math.sin((1 - actionRemaining) * Math.PI);
   const breathing = performance.now() * 0.0018;
   object.userData.recoil = recoil;
   object.userData.reloadPose = reload;
-  object.position.copy(basePosition);
-  object.position.x += Math.sin(breathing) * 0.004 + recoil * recoilSide;
-  object.position.y += Math.cos(breathing * 0.8) * 0.003;
-  object.position.z += recoil * (kind === 'shotgun' ? 0.3 : 0.18);
-  object.rotation.set(
-    baseRotation.x + recoil * (kind === 'shotgun' ? 0.38 : 0.3) + reload * 0.18,
-    baseRotation.y + Math.sin(breathing * 0.7) * 0.004,
-    baseRotation.z + recoil * recoilSide,
+  object.userData.actionCycle = actionRemaining;
+  object.userData.aimPose = aim;
+  object.position.set(
+    THREE.MathUtils.lerp(basePosition.x, 0, aim),
+    THREE.MathUtils.lerp(basePosition.y, -0.16, aim),
+    THREE.MathUtils.lerp(basePosition.z, -0.72, aim),
   );
-  const barrels = object.getObjectByName('shotgun-barrels');
-  if (barrels) barrels.rotation.x = -reload * 0.68;
+  object.position.x += Math.sin(breathing) * 0.004 * (1 - aim) + recoil * recoilSide;
+  object.position.y += Math.cos(breathing * 0.8) * 0.003 * (1 - aim);
+  object.position.z += recoil * 0.3;
+  object.rotation.set(
+    THREE.MathUtils.lerp(baseRotation.x, 0, aim)
+      + recoil * 0.38
+      + reload * 0.18,
+    THREE.MathUtils.lerp(baseRotation.y, 0, aim)
+      + Math.sin(breathing * 0.7) * 0.004 * (1 - aim),
+    THREE.MathUtils.lerp(baseRotation.z, 0, aim) + recoil * recoilSide,
+  );
+  const pump = object.getObjectByName('shotgun-pump');
+  if (pump) {
+    pump.position.z = Number(pump.userData.baseZ) + actionMotion * 0.28;
+  }
+  const bolt = object.getObjectByName('shotgun-bolt');
+  if (bolt) {
+    bolt.position.z = Number(bolt.userData.baseZ) + actionMotion * 0.2;
+  }
+  const rifleBolt = object.getObjectByName('weapon-bolt');
+  if (rifleBolt) {
+    rifleBolt.position.x = Number(rifleBolt.userData.baseX) + actionMotion * 0.18;
+  }
   const cylinder = object.getObjectByName('revolver-cylinder');
   if (cylinder) {
-    cylinder.position.x = reload * 0.2;
-    cylinder.rotation.x = THREE.MathUtils.lerp(
-      cylinder.rotation.x,
-      Number(object.userData.chamberAngle ?? 0),
-      0.28,
-    );
-  }
-  const hammer = object.getObjectByName('revolver-hammer');
-  if (hammer) {
-    hammer.rotation.x = -0.35 - recoil * 0.65;
+    cylinder.rotation.x = actionMotion * (Math.PI / 3);
   }
 }
 
+function updateAimCamera(camera: THREE.PerspectiveCamera, delta: number) {
+  const targetFov = camera.userData.weaponAiming === true ? AIM_FOV : DEFAULT_FOV;
+  const nextFov = THREE.MathUtils.lerp(camera.fov, targetFov, Math.min(1, delta * 12));
+  if (Math.abs(camera.fov - nextFov) < 0.01) return;
+  camera.fov = nextFov;
+  camera.updateProjectionMatrix();
+}
+
 export function updateWeaponEffects(scene: THREE.Scene, delta: number) {
-  scene.traverse((object) => updateHeldWeapon(object, delta));
+  scene.traverse((object) => {
+    updateHeldWeapon(object, delta);
+    if (object instanceof THREE.PerspectiveCamera) updateAimCamera(object, delta);
+  });
   updateShotEffects(scene, delta);
 }

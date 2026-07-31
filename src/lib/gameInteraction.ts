@@ -1,18 +1,20 @@
 import * as THREE from 'three';
 import { type CheckoutKind } from './customerSystem';
 import {
+  equipStartingWeapon,
   nearestWeaponCabinet,
   pickupWeapon,
   putBackWeapon,
+  resetWeapons,
   type WeaponKind,
 } from './gameWeapon';
-import { nearestDoor, toggleNearestDoor } from './staffDoor';
+import { type DoorLabel, nearestDoor, toggleNearestDoor } from './staffDoor';
 import { useWallMedkit, wallMedkitDistance } from './wallMedkit';
 
 export type DoorHudState = {
   near: boolean;
   open: boolean;
-  label: 'STAFF DOOR' | 'BACK DOOR';
+  label: DoorLabel;
 };
 
 export type CustomerInteractions = {
@@ -21,7 +23,7 @@ export type CustomerInteractions = {
   cleanNearest: (camera: THREE.Camera) => boolean;
   checkoutDistance: (camera: THREE.Camera) => number;
   checkoutKind: (camera: THREE.Camera) => CheckoutKind | null;
-  serveNext: (camera: THREE.Camera) => boolean;
+  serveNext: (camera: THREE.Camera) => CheckoutKind | null;
   refuseNext: (camera: THREE.Camera) => boolean;
 };
 
@@ -37,6 +39,7 @@ type InteractionOptions = {
   onWeaponChange: (weapon: WeaponKind | null) => void;
   onCabinetChange: (weapon: WeaponKind | null) => void;
   onPurchase: () => void;
+  onAnomalyAccepted: () => void;
 };
 
 export function createGameInteraction(options: InteractionOptions) {
@@ -72,9 +75,10 @@ export function createGameInteraction(options: InteractionOptions) {
       return;
     }
     if (nearby.checkout < 2.5 && nearby.checkout < Math.min(nearby.medkit, nearby.mess, nearby.door.distance, nearby.cabinet.distance)) {
-      const kind = customers.checkoutKind(camera);
-      if (customers.serveNext(camera)) {
-        if (kind === 'buyer') options.onPurchase();
+      const result = customers.serveNext(camera);
+      if (result) {
+        if (result === 'buyer') options.onPurchase();
+        else options.onAnomalyAccepted();
         options.showCheckout(null);
       }
       return;
@@ -151,5 +155,28 @@ export function createGameInteraction(options: InteractionOptions) {
     }
   };
 
-  return { interact, refuse, update, weaponKind: () => weapon };
+  const reset = () => {
+    resetWeapons(scene, camera);
+    weapon = null;
+    nearCabinet = null;
+    options.onWeaponChange(null);
+    options.onCabinetChange(null);
+  };
+
+  const equipWeapon = (kind: WeaponKind) => {
+    resetWeapons(scene, camera);
+    equipStartingWeapon(scene, camera, kind);
+    weapon = kind;
+    options.onWeaponChange(kind);
+    options.onCabinetChange(null);
+  };
+
+  return {
+    interact,
+    refuse,
+    update,
+    reset,
+    equipWeapon,
+    weaponKind: () => weapon,
+  };
 }

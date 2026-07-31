@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { type WeaponKind } from './weaponTypes';
 
 export const WEAPON_EFFECT_NAME = 'weapon-effect';
 
@@ -12,9 +11,8 @@ function addMuzzleFlash(
   effect: THREE.Group,
   start: THREE.Vector3,
   direction: THREE.Vector3,
-  kind: WeaponKind,
 ) {
-  const size = kind === 'shotgun' ? 0.2 : 0.13;
+  const size = 0.2;
   const material = new THREE.MeshBasicMaterial({
     color: 0xffc45c,
     transparent: true,
@@ -25,7 +23,7 @@ function addMuzzleFlash(
   flash.position.copy(start).addScaledVector(direction, size);
   effect.add(flash);
 
-  const light = new THREE.PointLight(0xffa43a, kind === 'shotgun' ? 7 : 4, 4);
+  const light = new THREE.PointLight(0xffa43a, 7, 4);
   light.position.copy(start);
   effect.add(light);
 }
@@ -48,9 +46,9 @@ function addSmoke(effect: THREE.Group, start: THREE.Vector3, direction: THREE.Ve
   }
 }
 
-function addImpact(effect: THREE.Group, point: THREE.Vector3, kind: WeaponKind) {
+function addImpact(effect: THREE.Group, point: THREE.Vector3) {
   const spark = new THREE.Mesh(
-    new THREE.OctahedronGeometry(kind === 'shotgun' ? 0.035 : 0.05, 0),
+    new THREE.OctahedronGeometry(0.035, 0),
     new THREE.MeshBasicMaterial({ color: 0xffb45b, transparent: true }),
   );
   spark.position.copy(point);
@@ -62,16 +60,15 @@ export function createShotEffect(
   start: THREE.Vector3,
   direction: THREE.Vector3,
   impacts: ShotImpact[],
-  kind: WeaponKind,
 ) {
   const effect = new THREE.Group();
   effect.name = WEAPON_EFFECT_NAME;
   effect.userData.life = 0.24;
   effect.userData.initialLife = 0.24;
-  addMuzzleFlash(effect, start, direction, kind);
+  addMuzzleFlash(effect, start, direction);
   addSmoke(effect, start, direction);
   impacts.forEach(({ point, hit }) => {
-    if (hit) addImpact(effect, point, kind);
+    if (hit) addImpact(effect, point);
   });
   scene.add(effect);
 }

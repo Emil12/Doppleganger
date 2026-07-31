@@ -4,9 +4,10 @@ import { addCheckoutStation } from './gasStationCheckout';
 import { addGasStationDecor } from './gasStationDecor';
 import { addFreezers } from './gasStationFreezers';
 import { addGasStationForest } from './gasStationForest';
-import { PUMP_POSITIONS } from './gasStationLayout';
+import { PUMP_POSITIONS, RESTROOM, SHOP } from './gasStationLayout';
 import { addStationLighting } from './gasStationLighting';
 import { addStaffRoom } from './gasStationStaffRoom';
+import { addRestroom } from './gasStationRestroom';
 import { addShopShelves } from './gasStationShelves';
 import { addDetailedModels } from './gasStationModels';
 import { addPolygonDetails } from './gasStationPolygons';
@@ -84,7 +85,13 @@ function sign(
 function buildShop(scene: THREE.Scene) {
   box(scene, 0xffffff, [17, 0.15, 14], [0, 0, -16.5], 0, 'tile', [8, 7]);
   box(scene, 0x7a8179, [18, 0.5, 15], [0, 4.25, -16.5], 0, 'metal', [10, 7]);
-  box(scene, 0xffffff, [17.5, 4, 0.5], [0, 2, -23.5], 0, 'wall', [9, 2]);
+  const backLeft = SHOP.left - 0.25;
+  const backRight = SHOP.right + 0.25;
+  const leftWallWidth = RESTROOM.doorLeft - backLeft;
+  const rightWallWidth = backRight - RESTROOM.doorRight;
+  box(scene, 0xffffff, [leftWallWidth, 4, 0.5], [(backLeft + RESTROOM.doorLeft) / 2, 2, SHOP.back], 0, 'wall', [2, 2]);
+  box(scene, 0xffffff, [rightWallWidth, 4, 0.5], [(RESTROOM.doorRight + backRight) / 2, 2, SHOP.back], 0, 'wall', [7, 2]);
+  box(scene, 0xffffff, [RESTROOM.doorRight - RESTROOM.doorLeft, 1, 0.5], [(RESTROOM.doorLeft + RESTROOM.doorRight) / 2, 3.5, SHOP.back], 0, 'wall');
   box(scene, 0xffffff, [0.5, 4, 14.5], [-8.5, 2, -16.5], 0, 'wall', [7, 2]);
   box(scene, 0xffffff, [7.05, 0.9, 0.5], [-4.975, 0.45, -9.5], 0, 'wall', [4, 1]);
   box(scene, 0xffffff, [7.05, 0.9, 0.5], [4.975, 0.45, -9.5], 0, 'wall', [4, 1]);
@@ -142,6 +149,7 @@ export function buildGasStationScene() {
   for (let x = -36; x < 38; x += 8) box(scene, 0xb0a151, [4, 0.04, 0.25], [x, 0.06, 14]);
   buildShop(scene);
   addStaffRoom(scene);
+  addRestroom(scene);
   buildForecourt(scene);
   addGasStationDecor(scene);
   addGasStationForest(scene);

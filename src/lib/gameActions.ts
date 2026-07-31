@@ -1,44 +1,21 @@
 import * as THREE from 'three';
 import { type CheckoutKind } from './customerSystem';
 import {
-  fireRevolver,
-  fireShotgun,
-  setWeaponReloading,
-  type WeaponKind,
-  WEAPON_CONFIG,
-} from './gameWeapon';
-import {
   createGameInteraction,
   type CustomerInteractions,
   type DoorHudState,
 } from './gameInteraction';
+import {
+  type WeaponHudState,
+  type WeaponSounds,
+} from './gameActionTypes';
+import { createWeaponController } from './weaponController';
 
-export type WeaponHudState = {
-  weapon: WeaponKind | null;
-  ammo: number;
-  capacity: number;
-  nearbyWeapon: WeaponKind | null;
-  reloading: boolean;
-};
-
-export const INITIAL_WEAPON_STATE: WeaponHudState = {
-  weapon: null,
-  ammo: 0,
-  capacity: 0,
-  nearbyWeapon: null,
-  reloading: false,
-};
-
-export const INITIAL_DOOR_STATE: DoorHudState = {
-  near: false,
-  open: true,
-  label: 'STAFF DOOR',
-};
-
-type WeaponSounds = {
-  fire: (weapon: WeaponKind) => void;
-  empty: () => void;
-};
+export {
+  INITIAL_DOOR_STATE,
+  INITIAL_WEAPON_STATE,
+  type WeaponHudState,
+} from './gameActionTypes';
 
 export function createGameActions(
   scene: THREE.Scene,
@@ -53,22 +30,19 @@ export function createGameActions(
   showCheckout: (kind: CheckoutKind | null) => void,
   onShot: () => void,
   onPurchase: () => void,
+  onAnomalyAccepted: () => void,
 ) {
-  const ammo: Record<WeaponKind, number> = { revolver: 6, shotgun: 2 };
-  let reloading = false;
-  let nearbyWeapon: WeaponKind | null = null;
-  let reloadTimer: number | undefined;
-  let nextShotAt = 0;
-
-  const weaponState = (weapon: WeaponKind | null): WeaponHudState => ({
-    weapon,
-    ammo: weapon ? ammo[weapon] : 0,
-    capacity: weapon ? WEAPON_CONFIG[weapon].capacity : 0,
-    nearbyWeapon,
-    reloading,
+  let interaction: ReturnType<typeof createGameInteraction>;
+  const weapons = createWeaponController({
+    scene,
+    camera,
+    customers,
+    sounds,
+    getWeapon: () => interaction.weaponKind(),
+    showWeapon,
+    onShot,
   });
-
-  const interaction = createGameInteraction({
+  interaction = createGameInteraction({
     scene,
     camera,
     customers,
@@ -77,66 +51,27 @@ export function createGameActions(
     showMedkit,
     showCheckout,
     healPlayer,
-    onWeaponChange: (weapon) => {
-      stopReload();
-      showWeapon(weaponState(weapon));
-    },
-    onCabinetChange: (weapon) => {
-      nearbyWeapon = weapon;
-      showWeapon(weaponState(interaction.weaponKind()));
-    },
+    onWeaponChange: weapons.onWeaponChange,
+    onCabinetChange: weapons.onCabinetChange,
     onPurchase,
+    onAnomalyAccepted,
   });
 
-  const showCurrentWeapon = () => showWeapon(weaponState(interaction.weaponKind()));
-
-  const stopReload = () => {
-    reloading = false;
-    setWeaponReloading(camera, false);
-    if (reloadTimer !== undefined) window.clearTimeout(reloadTimer);
-    reloadTimer = undefined;
-  };
-
-  const shoot = () => {
-    const weapon = interaction.weaponKind();
-    const now = performance.now();
-    if (!weapon || reloading || now < nextShotAt) return;
-    if (ammo[weapon] === 0) {
-      sounds.empty();
-      return;
-    }
-    ammo[weapon] -= 1;
-    nextShotAt = now + (weapon === 'shotgun' ? 420 : 240);
-    onShot();
-    const hits = weapon === 'shotgun'
-      ? fireShotgun(scene, camera)
-      : fireRevolver(scene, camera);
-    hits.forEach((hit) => customers.hitCustomer(hit.object, now));
-    sounds.fire(weapon);
-    showCurrentWeapon();
-  };
-
-  const reload = () => {
-    const weapon = interaction.weaponKind();
-    if (!weapon || ammo[weapon] === WEAPON_CONFIG[weapon].capacity || reloading) return;
-    reloading = true;
-    setWeaponReloading(camera, true);
-    showCurrentWeapon();
-    reloadTimer = window.setTimeout(() => {
-      ammo[weapon] = WEAPON_CONFIG[weapon].capacity;
-      reloading = false;
-      reloadTimer = undefined;
-      setWeaponReloading(camera, false);
-      showCurrentWeapon();
-    }, WEAPON_CONFIG[weapon].reloadMs);
+  const reset = () => {
+    weapons.reset();
+    interaction.reset();
   };
 
   return {
     interact: interaction.interact,
     refuse: interaction.refuse,
-    shoot,
-    reload,
+    shoot: weapons.shoot,
+    reload: weapons.reload,
+    aim: weapons.aim,
+    selectSlot: weapons.selectSlot,
+    equipWeapon: interaction.equipWeapon,
+    reset,
     updateProximity: interaction.update,
-    dispose: stopReload,
+    dispose: weapons.dispose,
   };
 }

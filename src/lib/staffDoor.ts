@@ -1,12 +1,14 @@
 import * as THREE from 'three';
-import { STAFF_ROOM } from './gasStationLayout';
+import { RESTROOM, STAFF_ROOM } from './gasStationLayout';
 
 export const STAFF_DOOR_NAME = 'staff-door';
 export const STAFF_DOOR_ANCHOR_NAME = 'staff-door-anchor';
 export const BACK_DOOR_NAME = 'back-door';
 export const BACK_DOOR_ANCHOR_NAME = 'back-door-anchor';
+export const RESTROOM_DOOR_NAME = 'restroom-door';
+export const RESTROOM_DOOR_ANCHOR_NAME = 'restroom-door-anchor';
 
-type DoorLabel = 'STAFF DOOR' | 'BACK DOOR';
+export type DoorLabel = 'STAFF DOOR' | 'BACK DOOR' | 'RESTROOM';
 
 const doors: Array<{ name: string; anchor: string; label: DoorLabel; openAngle: number }> = [
   {
@@ -19,6 +21,12 @@ const doors: Array<{ name: string; anchor: string; label: DoorLabel; openAngle: 
     name: BACK_DOOR_NAME,
     anchor: BACK_DOOR_ANCHOR_NAME,
     label: 'BACK DOOR',
+    openAngle: Math.PI / 2,
+  },
+  {
+    name: RESTROOM_DOOR_NAME,
+    anchor: RESTROOM_DOOR_ANCHOR_NAME,
+    label: 'RESTROOM',
     openAngle: Math.PI / 2,
   },
 ];
@@ -85,7 +93,19 @@ function backDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number
   );
 }
 
+function restroomDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number) {
+  if (scene.getObjectByName(RESTROOM_DOOR_NAME)?.userData.open) return false;
+  return (
+    x + radius > RESTROOM.doorLeft
+    && x - radius < RESTROOM.doorRight
+    && z + radius > RESTROOM.front - 0.25
+    && z - radius < RESTROOM.front + 0.25
+  );
+}
+
 export function staffDoorBlocks(scene: THREE.Scene, x: number, z: number) {
   const radius = 0.34;
-  return sideDoorBlocks(scene, x, z, radius) || backDoorBlocks(scene, x, z, radius);
+  return sideDoorBlocks(scene, x, z, radius)
+    || backDoorBlocks(scene, x, z, radius)
+    || restroomDoorBlocks(scene, x, z, radius);
 }

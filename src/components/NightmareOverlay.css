@@ -1,0 +1,79 @@
+.nightmare-overlay {
+  position: absolute;
+  z-index: 18;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 45px 18px rgba(65, 0, 0, 0.88),
+    inset 0 0 120px 30px rgba(116, 0, 0, 0.5);
+  animation: nightmare-pulse 2.8s ease-in-out infinite alternate;
+}
+
+.nightmare-overlay::before,
+.nightmare-overlay::after,
+.nightmare-overlay__blood {
+  position: absolute;
+  inset: -4%;
+  content: "";
+  background:
+    radial-gradient(ellipse at 0 8%, #790908 0 5%, transparent 12%),
+    radial-gradient(ellipse at 100% 22%, #5f0303 0 7%, transparent 15%),
+    radial-gradient(ellipse at 8% 100%, #860b08 0 8%, transparent 17%),
+    radial-gradient(ellipse at 96% 94%, #540000 0 10%, transparent 20%);
+  filter: blur(3px);
+}
+
+.nightmare-overlay::after {
+  transform: rotate(180deg) scale(1.1);
+  opacity: 0.65;
+  animation: nightmare-crawl 7s ease-in-out infinite alternate;
+}
+
+.nightmare-overlay__blood {
+  inset: -15% -8%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 7%, rgba(89, 0, 0, 0.6) 8% 9%, transparent 11%),
+    linear-gradient(#780907, transparent 38%);
+  filter: blur(5px);
+  animation: nightmare-drip 9s linear infinite;
+}
+
+.nightmare-overlay span {
+  position: absolute;
+  top: 54px;
+  left: 50%;
+  color: rgba(220, 190, 176, 0.8);
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 8px #d00;
+  transform: translateX(-50%);
+  animation: nightmare-text 1.2s steps(2) infinite;
+}
+
+.nightmare-overlay--no-blood {
+  box-shadow: inset 0 0 80px 24px rgba(0, 0, 0, 0.92);
+  animation: none;
+}
+
+.nightmare-overlay--no-blood::before,
+.nightmare-overlay--no-blood::after {
+  display: none;
+}
+
+@keyframes nightmare-pulse {
+  to { box-shadow: inset 0 0 70px 28px #6f0000, inset 0 0 150px 45px rgba(132, 0, 0, 0.6); }
+}
+
+@keyframes nightmare-crawl {
+  to { transform: rotate(185deg) scale(1.22); }
+}
+
+@keyframes nightmare-drip {
+  from { translate: 0 -20%; }
+  to { translate: 0 20%; }
+}
+
+@keyframes nightmare-text {
+  50% { opacity: 0.25; translate: 4px 0; }
+}

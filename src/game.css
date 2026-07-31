@@ -91,42 +91,6 @@ canvas {
   background: repeating-linear-gradient(transparent 0 4px, rgba(7, 11, 8, 0.28) 4px 5px);
 }
 
-.location-label {
-  position: absolute;
-  top: 48px;
-  left: 9px;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 7px;
-  color: #e4dec7;
-  background: rgba(13, 18, 15, 0.62);
-  backdrop-filter: blur(8px);
-  font-size: clamp(8px, 1.4vw, 12px);
-}
-
-.location-label--inside {
-  color: #b9ed91;
-}
-
-.start-screen {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  color: #e8e0bf;
-  background: radial-gradient(circle, rgba(8, 12, 9, 0.18), rgba(8, 12, 9, 0.7));
-  text-align: center;
-  font-size: clamp(14px, 2.4vw, 22px);
-  letter-spacing: 0.14em;
-  text-shadow: 0 2px 18px #000;
-  pointer-events: none;
-}
-
-.start-screen small {
-  color: #9ba198;
-  font-size: 0.55em;
-}
-
 .crosshair {
   position: absolute;
   top: 50%;

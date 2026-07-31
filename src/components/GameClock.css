@@ -1,8 +1,9 @@
 .game-clock {
   position: absolute;
-  top: 9px;
-  right: 9px;
-  min-width: 96px;
+  bottom: 104px;
+  left: 14px;
+  width: min(260px, 48%);
+  box-sizing: border-box;
   padding: 7px 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
@@ -11,7 +12,7 @@
   color: #e4dec7;
   background: rgba(13, 18, 15, 0.72);
   backdrop-filter: blur(8px);
-  text-align: right;
+  text-align: left;
   font-family: "Courier New", monospace;
   pointer-events: none;
 }

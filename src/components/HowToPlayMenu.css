@@ -1,0 +1,70 @@
+.how-to-play {
+  display: grid;
+  gap: 11px;
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.1em;
+}
+
+.how-to-play header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.how-to-play header span,
+.how-to-play > small {
+  color: #78837b;
+  font-size: 8px;
+}
+
+.how-to-play > p {
+  margin: 0;
+  color: #aaa994;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.how-to-play__controls {
+  max-height: min(42vh, 330px);
+  padding-right: 5px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  scrollbar-color: #7f7240 #172019;
+}
+
+.how-to-play__controls div {
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 1px solid rgba(164, 180, 165, 0.16);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(18, 25, 21, 0.74);
+}
+
+.how-to-play kbd {
+  min-width: 28px;
+  padding: 4px 5px;
+  border: 1px solid #766d49;
+  color: #e2cc78;
+  background: #111612;
+  font: inherit;
+  text-align: center;
+}
+
+.how-to-play__controls span {
+  color: #a8afa5;
+  font-size: 7px;
+}
+
+.how-to-play > small {
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .how-to-play__controls {
+    grid-template-columns: 1fr;
+  }
+}

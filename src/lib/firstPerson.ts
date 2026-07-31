@@ -1,12 +1,15 @@
 import * as THREE from 'three';
 import { FOREST_TREES } from './gasStationForest';
-import { PUMP_POSITIONS, SHOP, STAFF_ROOM } from './gasStationLayout';
+import { PUMP_POSITIONS, RESTROOM, SHOP, STAFF_ROOM } from './gasStationLayout';
 import { SHOP_SHELF_BOUNDS } from './gasStationShelves';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type Controls = Record<Direction, boolean>;
 export type JumpState = { height: number; velocity: number };
-export type SprintState = { stamina: number };
+export type SprintState = {
+  stamina: number;
+  exhausted: boolean;
+};
 export type CrouchState = { amount: number };
 
 const KEY_DIRECTIONS: Record<string, Direction> = {
@@ -28,7 +31,8 @@ type Wall = {
 };
 
 const walls: Wall[] = [
-  { minX: SHOP.left - 0.25, maxX: SHOP.right + 0.25, minZ: SHOP.back - 0.25, maxZ: SHOP.back + 0.25 },
+  { minX: SHOP.left - 0.25, maxX: RESTROOM.doorLeft, minZ: SHOP.back - 0.25, maxZ: SHOP.back + 0.25 },
+  { minX: RESTROOM.doorRight, maxX: SHOP.right + 0.25, minZ: SHOP.back - 0.25, maxZ: SHOP.back + 0.25 },
   { minX: SHOP.left - 0.25, maxX: SHOP.left + 0.25, minZ: SHOP.back, maxZ: SHOP.front },
   {
     minX: SHOP.right - 0.25,
@@ -77,6 +81,48 @@ const walls: Wall[] = [
     maxX: STAFF_ROOM.left + 0.25,
     minZ: STAFF_ROOM.back,
     maxZ: SHOP.back,
+  },
+  {
+    minX: RESTROOM.left - 0.12,
+    maxX: RESTROOM.left + 0.12,
+    minZ: RESTROOM.back,
+    maxZ: RESTROOM.front,
+  },
+  {
+    minX: RESTROOM.right - 0.12,
+    maxX: RESTROOM.right + 0.12,
+    minZ: RESTROOM.back,
+    maxZ: RESTROOM.front,
+  },
+  {
+    minX: RESTROOM.left,
+    maxX: RESTROOM.right,
+    minZ: RESTROOM.back - 0.12,
+    maxZ: RESTROOM.back + 0.12,
+  },
+  {
+    minX: RESTROOM.left,
+    maxX: RESTROOM.doorLeft,
+    minZ: RESTROOM.front - 0.12,
+    maxZ: RESTROOM.front + 0.12,
+  },
+  {
+    minX: RESTROOM.doorRight,
+    maxX: RESTROOM.right,
+    minZ: RESTROOM.front - 0.12,
+    maxZ: RESTROOM.front + 0.12,
+  },
+  {
+    minX: RESTROOM.left + 0.2,
+    maxX: RESTROOM.left + 1.1,
+    minZ: RESTROOM.back + 0.05,
+    maxZ: RESTROOM.back + 1.25,
+  },
+  {
+    minX: RESTROOM.right - 0.95,
+    maxX: RESTROOM.right - 0.05,
+    minZ: RESTROOM.back + 0.3,
+    maxZ: RESTROOM.back + 1.25,
   },
   { minX: 9.1, maxX: 10, minZ: -26.15, maxZ: -25.25 },
   ...SHOP_SHELF_BOUNDS,
@@ -136,12 +182,22 @@ export function updatePlayer(
   const side = Number(controls.right) - Number(controls.left);
   const isWalking = forward !== 0 || side !== 0;
   const isSprinting =
-    !crouched && sprintHeld && controls.up && jump.height === 0 && sprint.stamina > 0;
-  const recovery = isSprinting ? -14 : 18;
+    !sprint.exhausted
+    && !crouched
+    && sprintHeld
+    && controls.up
+    && jump.height === 0
+    && sprint.stamina > 0;
+  const recovery = isSprinting ? -14 : sprint.exhausted ? 12 : 18;
   sprint.stamina = THREE.MathUtils.clamp(sprint.stamina + recovery * delta, 0, 100);
+  if (sprint.stamina === 0) sprint.exhausted = true;
+  if (sprint.exhausted && sprint.stamina >= 35) sprint.exhausted = false;
   const speedBoost = isSprinting ? 1.75 : 1;
   const stanceSpeed = crouched ? 0.58 : 1;
-  const speed = (delta * 4.4 * speedBoost * stanceSpeed) / (Math.hypot(forward, side) || 1);
+  const exhaustionSpeed = sprint.exhausted ? 0.62 : 1;
+  const speed = (
+    delta * 4.4 * speedBoost * stanceSpeed * exhaustionSpeed
+  ) / (Math.hypot(forward, side) || 1);
   const xMove = (-Math.sin(yaw) * forward + Math.cos(yaw) * side) * speed;
   const zMove = (-Math.cos(yaw) * forward - Math.sin(yaw) * side) * speed;
   movePlayer(camera.position, xMove, zMove, extraCollision);
@@ -157,18 +213,4 @@ export function updatePlayer(
   const bobAmount = crouched ? 0.018 : 0.035;
   const headBob = isWalking && jump.height === 0 ? Math.sin(time * 0.012) * bobAmount : 0;
   camera.position.y = THREE.MathUtils.lerp(1.65, 1.05, crouch.amount) + jump.height + headBob;
-}
-
-export function isInsideShop(position: THREE.Vector3) {
-  const insideMainShop =
-    position.x > SHOP.left &&
-    position.x < SHOP.right &&
-    position.z < SHOP.front &&
-    position.z > SHOP.back;
-  const insideStaffRoom =
-    position.x > STAFF_ROOM.left &&
-    position.x < STAFF_ROOM.right &&
-    position.z < STAFF_ROOM.front &&
-    position.z > STAFF_ROOM.back;
-  return insideMainShop || insideStaffRoom;
 }

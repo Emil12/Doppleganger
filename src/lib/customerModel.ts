@@ -3,6 +3,7 @@ import { createAnomalyFeatures } from './anomalyModel';
 import { createIdCard, createShoppingBag } from './customerAccessories';
 import { createCustomerBody } from './customerBody';
 import { customerStyle } from './customerStyle';
+import { type AnomalyKind, randomAnomalyKind } from './anomalyTypes';
 
 export { animateCustomer } from './customerAnimation';
 
@@ -21,6 +22,7 @@ export type CustomerModel = {
   isAnomaly: boolean;
   anomalyFeatures: THREE.Group;
   anomalyClue: AnomalyClue | null;
+  anomalyKind: AnomalyKind | null;
 };
 
 const ANOMALY_CLUES: AnomalyClue[] = ['height', 'eyes', 'twitch', 'head', 'arm', 'id'];
@@ -30,17 +32,18 @@ export function createCustomerModel(index: number, isAnomaly = false): CustomerM
   const anomalyClue = isAnomaly
     ? ANOMALY_CLUES[Math.floor(Math.random() * ANOMALY_CLUES.length)]
     : null;
+  const anomalyKind = isAnomaly ? randomAnomalyKind() : null;
   const root = new THREE.Group();
   root.name = 'customer';
   const body = createCustomerBody(root, style, index, anomalyClue === 'eyes');
   const shoppingBag = createShoppingBag();
   const idCard = createIdCard(anomalyClue === 'id');
-  const anomalyFeatures = isAnomaly ? createAnomalyFeatures() : new THREE.Group();
+  const anomalyFeatures = anomalyKind ? createAnomalyFeatures(anomalyKind) : new THREE.Group();
   root.add(shoppingBag, idCard, anomalyFeatures);
 
-  if (anomalyClue === 'height') root.scale.set(1.04, 1.42, 1.04);
-  if (anomalyClue === 'head') body.head.scale.set(0.68, 1.58, 0.82);
-  if (anomalyClue === 'arm') body.leftArm.scale.y = 1.68;
+  if (anomalyClue === 'height') root.scale.set(1.01, 1.08, 1.01);
+  if (anomalyClue === 'head') body.head.scale.set(0.94, 1.12, 0.98);
+  if (anomalyClue === 'arm') body.leftArm.scale.y = 1.12;
 
   return {
     root,
@@ -50,6 +53,7 @@ export function createCustomerModel(index: number, isAnomaly = false): CustomerM
     isAnomaly,
     anomalyFeatures,
     anomalyClue,
+    anomalyKind,
   };
 }
 

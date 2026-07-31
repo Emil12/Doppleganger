@@ -4,8 +4,11 @@ import {
   GAME_START_MINUTE,
   GAME_SHIFT_DURATION_MS,
   GAME_SHIFT_HOURS,
-  REAL_MS_PER_GAME_HOUR,
 } from '../lib/gameTime';
+import {
+  NIGHTMARE_SHIFT,
+  NIGHTMARE_SHIFT_DURATION_MS,
+} from '../lib/nightmareEvent';
 import './GameClock.css';
 
 type GameClockProps = {
@@ -34,12 +37,16 @@ export function GameClock({ playing, shiftNumber, onShiftEnd }: GameClockProps) 
   useEffect(() => {
     if (!playing) return;
     if (startedAt.current === null) startedAt.current = Date.now();
+    const shiftDuration = shiftNumber === NIGHTMARE_SHIFT
+      ? NIGHTMARE_SHIFT_DURATION_MS
+      : GAME_SHIFT_DURATION_MS;
+    const millisecondsPerHour = shiftDuration / GAME_SHIFT_HOURS;
     const updateClock = () => {
       const start = startedAt.current;
       if (start === null) return;
       const elapsedMs = Date.now() - start;
-      setElapsedHours(Math.min(Math.floor(elapsedMs / REAL_MS_PER_GAME_HOUR), GAME_SHIFT_HOURS));
-      if (elapsedMs >= GAME_SHIFT_DURATION_MS) onShiftEnd();
+      setElapsedHours(Math.min(Math.floor(elapsedMs / millisecondsPerHour), GAME_SHIFT_HOURS));
+      if (elapsedMs >= shiftDuration) onShiftEnd();
     };
     updateClock();
     const timer = window.setInterval(updateClock, 1000);

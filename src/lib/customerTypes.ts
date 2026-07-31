@@ -13,7 +13,11 @@ export type Customer = {
   diedAt: number | null;
   splatter: THREE.Group | null;
   nextAttackAt: number;
+  nextVocalAt: number;
   nextBloodDropAt: number;
   lastBloodShotAt: number | null;
+  lastJudgementShotAt: number | null;
+  damagedPlayer: boolean;
+  immortal: boolean;
   bloodTrail: THREE.Group[];
 };

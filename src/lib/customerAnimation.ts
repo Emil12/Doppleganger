@@ -26,9 +26,11 @@ export function animateCustomer(model: CustomerModel, time: number, walking: boo
   model.head.position.y = 1.78 + bob * 0.7;
 
   if (twitching) {
-    model.head.rotation.z = Math.sin(time * 0.024) * 0.27;
-    model.head.rotation.y = Math.sin(time * 0.017) * 0.38;
-    model.leftArm.rotation.z = 0.3 + Math.sin(time * 0.03) * 0.22;
+    model.head.rotation.z = Math.sin(time * 0.024) * (hostile ? 0.27 : 0.025);
+    model.head.rotation.y = Math.sin(time * 0.017) * (hostile ? 0.38 : 0.04);
+    model.leftArm.rotation.z = hostile
+      ? 0.3 + Math.sin(time * 0.03) * 0.22
+      : Math.sin(time * 0.012) * 0.025;
     if (hostile) {
       model.head.rotation.x = -0.28 + Math.sin(time * 0.057) * 0.38;
       model.head.rotation.z = 0.22 + Math.sin(time * 0.046) * 0.34;
@@ -38,6 +40,28 @@ export function animateCustomer(model: CustomerModel, time: number, walking: boo
       model.rightArm.rotation.z = -0.52 + Math.sin(time * 0.047) * 0.38;
       model.anomalyFeatures.rotation.y = Math.sin(time * 0.028) * 0.11;
       model.anomalyFeatures.rotation.z = Math.sin(time * 0.063) * 0.055;
+      if (model.anomalyKind === 'screamer') {
+        model.head.rotation.x = -0.72 + Math.sin(time * 0.032) * 0.16;
+        model.leftArm.rotation.z = 1.1 + Math.sin(time * 0.04) * 0.25;
+        model.rightArm.rotation.z = -1.1 - Math.sin(time * 0.04) * 0.25;
+      }
+      if (model.anomalyKind === 'crier') {
+        model.head.rotation.x = 0.48 + Math.sin(time * 0.019) * 0.12;
+        model.torso.rotation.z = Math.sin(time * 0.031) * 0.24;
+        model.leftArm.rotation.z = 0.18;
+        model.rightArm.rotation.z = -0.18;
+      }
+      if (model.anomalyKind === 'crawler') {
+        model.torso.rotation.x = 0.72 + Math.sin(time * 0.045) * 0.12;
+        model.head.rotation.x = -0.58;
+        model.leftArm.rotation.z = 0.86;
+        model.rightArm.rotation.z = -0.86;
+      }
+      if (model.anomalyKind === 'stalker') {
+        model.head.rotation.y = Math.sin(time * 0.006) * 0.75;
+        model.head.rotation.z = Math.sin(time * 0.009) * 0.12;
+        model.torso.rotation.z = Math.sin(time * 0.007) * 0.06;
+      }
     }
     return;
   }

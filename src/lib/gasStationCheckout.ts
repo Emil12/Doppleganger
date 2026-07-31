@@ -1,12 +1,9 @@
 import * as THREE from 'three';
 import {
-  REVOLVER_CABINET_NAME,
-  REVOLVER_PICKUP_NAME,
   SHOTGUN_CABINET_NAME,
   SHOTGUN_PICKUP_NAME,
 } from './gameWeapon';
 import { lowPolyBox } from './lowPolyGeometry';
-import { createRevolverModel } from './revolverModel';
 import { createShotgunModel } from './shotgunModel';
 
 type Position = [number, number, number];
@@ -59,20 +56,6 @@ function addPaymentTools(group: THREE.Group) {
 }
 
 function addWeaponCabinet(group: THREE.Group) {
-  part(group, 0x101412, [0.04, 1.58, 0.82], [0.66, 1.22, 0.78]);
-  const cabinetMarker = new THREE.Object3D();
-  cabinetMarker.name = REVOLVER_CABINET_NAME;
-  cabinetMarker.position.set(0.9, 1.22, 0.78);
-  group.add(cabinetMarker);
-  part(group, 0x59615b, [0.08, 0.09, 0.9], [0.71, 2.04, 0.78]);
-  part(group, 0x59615b, [0.08, 0.09, 0.9], [0.71, 0.4, 0.78]);
-
-  const revolver = createRevolverModel(0.65);
-  revolver.name = REVOLVER_PICKUP_NAME;
-  revolver.position.set(0.73, 1.22, 0.78);
-  revolver.rotation.set(Math.PI / 2, 0.05, 0);
-  group.add(revolver);
-
   part(group, 0x101412, [0.04, 1.58, 0.82], [0.66, 1.22, -0.78]);
   part(group, 0x59615b, [0.08, 0.09, 0.9], [0.71, 2.04, -0.78]);
   part(group, 0x59615b, [0.08, 0.09, 0.9], [0.71, 0.4, -0.78]);

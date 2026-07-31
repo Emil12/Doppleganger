@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { type CustomerModel } from './customerModel';
+import { type AnomalyKind } from './anomalyTypes';
+import { applyAnomalyShape, createVariantFeatures } from './anomalyVariants';
 
 function fleshMaterial(color: number, emissive = 0) {
   return new THREE.MeshStandardMaterial({
@@ -116,13 +118,14 @@ function addHorrorGrowths(features: THREE.Group) {
   features.add(torsoMaw);
 }
 
-export function createAnomalyFeatures() {
+export function createAnomalyFeatures(kind: AnomalyKind) {
   const features = new THREE.Group();
   features.visible = false;
   addEyesAndJaw(features);
   addExposedBones(features);
   addClawsAndWounds(features);
   addHorrorGrowths(features);
+  features.add(createVariantFeatures(kind));
   const glow = new THREE.PointLight(0xb30b16, 2.2, 3.5, 2);
   glow.position.set(0, 1.55, -0.45);
   features.add(glow);
@@ -140,4 +143,5 @@ export function makeAnomalyHostile(model: CustomerModel) {
   model.leftLeg.scale.set(0.82, 1.35, 0.82);
   model.rightLeg.scale.set(1.18, 0.92, 1.12);
   model.anomalyFeatures.visible = true;
+  applyAnomalyShape(model);
 }

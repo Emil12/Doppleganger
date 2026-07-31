@@ -1,0 +1,155 @@
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 76% 27%, rgba(184, 190, 156, 0.14), transparent 24%),
+    linear-gradient(#090e0c 0 54%, #111510 54% 70%, #050706 70%);
+  transform: translate(var(--menu-x, 0), var(--menu-y, 0)) scale(1.04);
+  transition: transform 260ms ease-out;
+}
+
+.menu-backdrop__moon {
+  position: absolute;
+  top: 12%;
+  right: 15%;
+  width: clamp(74px, 8vw, 130px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0.62;
+  background: #c8c5a3;
+  box-shadow: 0 0 80px rgba(198, 198, 155, 0.2);
+}
+
+.menu-backdrop__moon::after {
+  content: "";
+  position: absolute;
+  inset: 13% 9% auto auto;
+  width: 88%;
+  height: 88%;
+  border-radius: inherit;
+  background: #090e0c;
+}
+
+.menu-backdrop__station {
+  position: absolute;
+  right: 5%;
+  bottom: 24%;
+  width: min(58vw, 850px);
+  height: 33%;
+  filter: drop-shadow(0 26px 22px rgba(0, 0, 0, 0.7));
+}
+
+.menu-backdrop__canopy {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 18%;
+  border-top: 5px solid #8b2930;
+  background: #373c34;
+  box-shadow: 0 10px 24px rgba(206, 193, 135, 0.08);
+}
+
+.menu-backdrop__canopy i {
+  position: absolute;
+  bottom: 18%;
+  width: 10%;
+  height: 12%;
+  background: #d7c98d;
+  box-shadow: 0 9px 34px rgba(215, 201, 141, 0.25);
+  animation: canopy-flicker 6s steps(1) infinite;
+}
+
+.menu-backdrop__canopy i:nth-child(1) { left: 12%; }
+.menu-backdrop__canopy i:nth-child(2) { left: 36%; animation-delay: -1s; }
+.menu-backdrop__canopy i:nth-child(3) { left: 60%; animation-delay: -4s; }
+.menu-backdrop__canopy i:nth-child(4) { left: 84%; animation-delay: -2s; }
+
+.menu-backdrop__store {
+  position: absolute;
+  right: 4%;
+  bottom: 0;
+  width: 54%;
+  height: 68%;
+  border-top: 3px solid #5d6256;
+  background: #151a16;
+}
+
+.menu-backdrop__windows {
+  position: absolute;
+  inset: 18% 8% 14%;
+  display: flex;
+  gap: 3%;
+}
+
+.menu-backdrop__windows span {
+  flex: 1;
+  border: 2px solid #252c27;
+  background: linear-gradient(160deg, #596057, #242b27 55%, #151a17);
+}
+
+.menu-backdrop__store b {
+  position: absolute;
+  right: 17%;
+  top: 32%;
+  color: #a24a43;
+  font: 700 clamp(6px, 0.6vw, 10px) "Courier New", monospace;
+  letter-spacing: 0.12em;
+  animation: sign-flicker 3.8s steps(1) infinite;
+}
+
+.menu-backdrop__pumps {
+  position: absolute;
+  left: 9%;
+  bottom: 0;
+  width: 38%;
+  height: 51%;
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+}
+
+.menu-backdrop__pumps i {
+  width: 17%;
+  height: 76%;
+  border-top: 5px solid #74252b;
+  background: linear-gradient(90deg, #262b26, #4a5048, #242824);
+  box-shadow: 0 12px 0 -9px #0b0d0b;
+}
+
+.menu-backdrop__road {
+  position: absolute;
+  right: -8%;
+  bottom: 9%;
+  width: 68%;
+  height: 12%;
+  border-top: 3px dashed rgba(202, 184, 109, 0.24);
+  transform: skewY(-3deg);
+}
+
+.menu-backdrop__fog {
+  position: absolute;
+  width: 70%;
+  height: 16%;
+  border-radius: 50%;
+  opacity: 0.16;
+  background: rgba(145, 153, 133, 0.28);
+  filter: blur(35px);
+  animation: menu-fog 14s ease-in-out infinite alternate;
+}
+
+.menu-backdrop__fog--one { right: -10%; bottom: 17%; }
+.menu-backdrop__fog--two { right: 24%; bottom: 31%; animation-delay: -7s; }
+
+@keyframes canopy-flicker {
+  0%, 92%, 96%, 100% { opacity: 1; }
+  93%, 95% { opacity: 0.18; }
+}
+
+@keyframes sign-flicker {
+  0%, 89%, 93%, 100% { opacity: 0.75; }
+  90%, 92% { opacity: 0.08; }
+}
+
+@keyframes menu-fog {
+  to { translate: -12% -16%; scale: 1.18; }
+}

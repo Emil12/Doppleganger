@@ -1,0 +1,46 @@
+.queue-dialogue {
+  position: absolute;
+  z-index: 9;
+  right: 18%;
+  bottom: 24%;
+  left: 18%;
+  padding: 9px 13px;
+  border-left: 2px solid #b7aa72;
+  color: #ded8c0;
+  background: linear-gradient(90deg, rgba(8, 12, 9, 0.9), rgba(8, 12, 9, 0.52));
+  font-family: "Courier New", monospace;
+  text-shadow: 0 1px #000;
+  pointer-events: none;
+  animation: queue-dialogue-in 180ms ease-out;
+}
+
+.queue-dialogue span {
+  color: #8d998f;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.queue-dialogue p {
+  margin: 4px 0 0;
+  font-size: clamp(10px, 1.5vw, 13px);
+}
+
+.queue-dialogue--anomaly {
+  border-color: #9e2830;
+  color: #e5b7b5;
+  background: linear-gradient(90deg, rgba(35, 3, 7, 0.92), rgba(15, 4, 6, 0.5));
+  animation: queue-dialogue-in 180ms ease-out, queue-dialogue-twitch 900ms steps(2) infinite;
+}
+
+.queue-dialogue--anomaly span {
+  color: #d35d62;
+}
+
+@keyframes queue-dialogue-in {
+  from { opacity: 0; translate: 0 8px; }
+}
+
+@keyframes queue-dialogue-twitch {
+  50% { translate: 2px 0; }
+}

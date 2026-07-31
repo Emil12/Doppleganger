@@ -1,5 +1,29 @@
 import * as THREE from 'three';
 import { CustomerModel } from './customerModel';
+import { RESTROOM, SHOP, STAFF_ROOM } from './gasStationLayout';
+
+const FLOOR_GAP = 0.006;
+const INDOOR_FLOOR_HEIGHT = 0.075;
+const CONCRETE_HEIGHT = -0.05;
+const ROAD_HEIGHT = 0.04;
+
+function floorHeight(position: THREE.Vector3) {
+  const insideShop = position.x >= SHOP.left
+    && position.x <= SHOP.right
+    && position.z >= SHOP.back
+    && position.z <= SHOP.front;
+  const insideStaffRoom = position.x >= STAFF_ROOM.left
+    && position.x <= STAFF_ROOM.right
+    && position.z >= STAFF_ROOM.back
+    && position.z <= STAFF_ROOM.front;
+  const insideRestroom = position.x >= RESTROOM.left
+    && position.x <= RESTROOM.right
+    && position.z >= RESTROOM.back
+    && position.z <= RESTROOM.front;
+  if (insideShop || insideStaffRoom || insideRestroom) return INDOOR_FLOOR_HEIGHT;
+  if (position.z >= 9 && position.z <= 19) return ROAD_HEIGHT;
+  return CONCRETE_HEIGHT;
+}
 
 function blobGeometry(radius: number, points: number, salt: number) {
   const shape = new THREE.Shape();
@@ -35,7 +59,7 @@ function stain(radius: number, color: number, x = 0, z = 0, salt = 1) {
   const mesh = new THREE.Mesh(BLOOD_BLOB_GEOMETRY, bloodMaterial(color));
   mesh.rotation.set(-Math.PI / 2, 0, salt);
   mesh.scale.setScalar(radius);
-  mesh.position.set(x, 0.025, z);
+  mesh.position.set(x, FLOOR_GAP, z);
   mesh.receiveShadow = true;
   return mesh;
 }
@@ -47,7 +71,7 @@ export function createCustomerSplatter(
 ) {
   const splatter = new THREE.Group();
   splatter.name = 'customer-mess';
-  splatter.position.set(position.x, 0, position.z);
+  splatter.position.set(position.x, floorHeight(position), position.z);
   splatter.add(stain(0.92 * intensity, 0x681018));
   splatter.add(stain(0.48 * intensity, 0x8a151b, 0.5 * intensity, -0.12, 4));
   for (let index = 0; index < Math.floor(14 * intensity); index += 1) {
@@ -69,7 +93,7 @@ export function createCustomerSplatter(
 export function createBloodDrop(scene: THREE.Scene, position: THREE.Vector3) {
   const drop = new THREE.Group();
   drop.name = 'anomaly-blood-drop';
-  drop.position.set(position.x, 0, position.z);
+  drop.position.set(position.x, floorHeight(position), position.z);
   drop.add(stain(0.34, 0x681018, 0, 0, position.x + position.z));
   drop.add(stain(0.13, 0x9d1820, 0.3, -0.12, position.z));
   scene.add(drop);

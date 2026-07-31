@@ -1,36 +1,58 @@
 import * as THREE from 'three';
-import { createCustomerModel, disposeCustomerModel } from './customerModel';
-import { animateCustomerDeath, createBloodDrop } from './customerMess';
+import { createAnomalyAudio } from './anomalyAudio';
+import { updateAnomalyChase } from './anomalyChase';
+import { disposeCustomerModel } from './customerModel';
+import { makeAnomalyHostile } from './anomalyModel';
+import { animateCustomerDeath } from './customerMess';
 import { createCustomerInteractions } from './customerInteractions';
-import { createAnomalySelector, randomCustomerDelay } from './customerRandomness';
 import {
-  EXIT_ROUTE,
-  moveCustomer,
-  queuePosition,
-  SHOPPING_ROUTE,
-} from './customerRoute';
+  createQueueDialogue,
+} from './customerDialogue';
+import {
+  updateLeavingPhase,
+  updateQueuePhase,
+  updateShoppingPhase,
+} from './customerPhases';
+import { createAnomalySelector, randomCustomerDelay } from './customerRandomness';
+import { createCustomerSpawner } from './customerSpawner';
 import { type Customer } from './customerTypes';
+import { type CustomerSystemOptions } from './customerSystemTypes';
+import { spawnImmortalInspector } from './inspectorModel';
 
 export { type CheckoutKind } from './customerTypes';
 
-const ANOMALY_RUN_SPEED = 7.7;
-const ANOMALY_HIT_POINTS = 5;
-
-function horizontalDistance(first: THREE.Vector3, second: THREE.Vector3) {
-  return Math.hypot(first.x - second.x, first.z - second.z);
-}
-
 export function createCustomerSystem(
   scene: THREE.Scene,
-  onPlayerHit: () => void,
-  onAnomalyKilled: () => void,
+  options: CustomerSystemOptions,
 ) {
+  const {
+    onPlayerHit,
+    onAnomalyKilled,
+    onInnocentShot,
+    onDialogue,
+    isBloodEnabled,
+    getDifficultyMultiplier,
+  } = options;
   const customers: Customer[] = [];
-  const interactions = createCustomerInteractions(scene, customers, onAnomalyKilled);
+  const interactions = createCustomerInteractions(
+    scene,
+    customers,
+    onAnomalyKilled,
+    onInnocentShot,
+    isBloodEnabled,
+  );
+  const anomalyAudio = createAnomalyAudio();
+  const queueDialogue = createQueueDialogue(onDialogue);
   const selectAnomaly = createAnomalySelector();
   let started = false;
   let nextCustomerAt = Number.POSITIVE_INFINITY;
-  let customerNumber = 0;
+  let nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
+  let nightmareSpawnsRemaining = 0;
+  const nextDelay = () => Math.max(
+    3_500,
+    randomCustomerDelay() / getDifficultyMultiplier(),
+  );
+  const spawnCustomer = createCustomerSpawner(scene, customers, getDifficultyMultiplier);
 
   const clearCustomers = () => {
     customers.forEach(({ model, splatter, bloodTrail }) => {
@@ -42,104 +64,74 @@ export function createCustomerSystem(
     customers.length = 0;
   };
 
-  const spawnCustomer = (isAnomaly = false) => {
-    const model = createCustomerModel(customerNumber, isAnomaly);
-    customerNumber += 1;
-    model.root.position.set(SHOPPING_ROUTE[0].x, 0, SHOPPING_ROUTE[0].z);
-    scene.add(model.root);
-    customers.push({
-      model,
-      phase: 'shopping',
-      routeIndex: 1,
-      waitUntil: 0,
-      hitPoints: isAnomaly ? ANOMALY_HIT_POINTS : 1,
-      diedAt: null,
-      splatter: null,
-      nextAttackAt: 0,
-      nextBloodDropAt: 0,
-      lastBloodShotAt: null,
-      bloodTrail: [],
-    });
-  };
-
   const start = (time: number) => {
+    anomalyAudio.enable();
     if (started) clearCustomers();
     started = true;
+    queueDialogue.reset();
+    nightmareSpawnsRemaining = 0;
+    nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
     spawnCustomer();
-    nextCustomerAt = time + randomCustomerDelay();
+    nextCustomerAt = time + nextDelay();
   };
 
-  const updateShopping = (customer: Customer, time: number, delta: number) => {
-    if (time < customer.waitUntil) return;
-    const target = SHOPPING_ROUTE[customer.routeIndex];
-    if (!target) {
-      customer.phase = 'queue';
-      return;
-    }
-    if (!moveCustomer(customer.model, target, time, delta)) return;
-    customer.routeIndex += 1;
-    customer.waitUntil = time + (target.wait ?? 0);
-    if (target.collectProducts) customer.model.shoppingBag.visible = true;
+  const startNightmareWave = (time: number) => {
+    clearCustomers();
+    started = true;
+    nightmareSpawnsRemaining = 10;
+    nextNightmareSpawnAt = time;
+    nextCustomerAt = Number.POSITIVE_INFINITY;
   };
 
-  const updateQueue = (customer: Customer, place: number, time: number, delta: number) => {
-    const target = queuePosition(place);
-    const ready = moveCustomer(customer.model, target, time, delta);
-    customer.model.idCard.visible = place === 0 && ready;
-    if (customer.model.idCard.visible) customer.model.rightArm.rotation.x = -0.8;
-  };
-
-  const updateLeaving = (customer: Customer, time: number, delta: number) => {
-    const target = EXIT_ROUTE[customer.routeIndex];
-    if (!target) {
-      customer.model.root.removeFromParent();
-      disposeCustomerModel(customer.model);
-      return false;
-    }
-    if (moveCustomer(customer.model, target, time, delta)) customer.routeIndex += 1;
-    return true;
-  };
-
-  const updateAttack = (
-    customer: Customer,
-    camera: THREE.PerspectiveCamera,
-    time: number,
-    delta: number,
-  ) => {
-    const target = { x: camera.position.x, z: camera.position.z };
-    const distance = horizontalDistance(customer.model.root.position, camera.position);
-    if (distance > 0.9) {
-      moveCustomer(customer.model, target, time, delta * (ANOMALY_RUN_SPEED / 1.15));
-    }
-    if (distance < 1.25 && time >= customer.nextAttackAt) {
-      customer.nextAttackAt = time + 1_100;
-      onPlayerHit();
-    }
-    if (time >= customer.nextBloodDropAt) {
-      customer.nextBloodDropAt = time + 160;
-      customer.bloodTrail.push(createBloodDrop(scene, customer.model.root.position));
-      if (customer.bloodTrail.length > 32) customer.bloodTrail.shift()?.removeFromParent();
-    }
+  const summonInspector = () => {
+    spawnImmortalInspector(spawnCustomer);
+    nightmareSpawnsRemaining = 0;
+    nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
+    nextCustomerAt = Number.POSITIVE_INFINITY;
   };
 
   const update = (time: number, delta: number, camera: THREE.PerspectiveCamera) => {
     if (!started) return;
+    if (nightmareSpawnsRemaining > 0 && time >= nextNightmareSpawnAt) {
+      const waveIndex = 10 - nightmareSpawnsRemaining;
+      const customer = spawnCustomer(true);
+      customer.phase = 'attacking';
+      customer.model.root.position.x += ((waveIndex % 3) - 1) * 0.72;
+      customer.model.idCard.visible = false;
+      makeAnomalyHostile(customer.model);
+      nightmareSpawnsRemaining -= 1;
+      nextNightmareSpawnAt = time + 650;
+      if (nightmareSpawnsRemaining === 0) {
+        nextCustomerAt = time + nextDelay();
+      }
+    }
     if (time >= nextCustomerAt) {
       spawnCustomer(selectAnomaly());
-      nextCustomerAt = time + randomCustomerDelay();
+      nextCustomerAt = time + nextDelay();
     }
     const queue = customers.filter(({ phase, diedAt }) => phase === 'queue' && diedAt === null);
-    queue.forEach((customer, place) => updateQueue(customer, place, time, delta));
+    queue.forEach((customer, place) => updateQueuePhase(customer, place, time, delta));
+    queueDialogue.update(queue, time);
     for (let index = customers.length - 1; index >= 0; index -= 1) {
       const customer = customers[index];
       if (customer.diedAt !== null) {
         animateCustomerDeath(customer.model, time - customer.diedAt);
       } else if (customer.phase === 'shopping') {
-        updateShopping(customer, time, delta);
-      } else if (customer.phase === 'leaving' && !updateLeaving(customer, time, delta)) {
+        updateShoppingPhase(customer, time, delta);
+      } else if (customer.phase === 'leaving' && !updateLeavingPhase(customer, time, delta)) {
         customers.splice(index, 1);
       } else if (customer.phase === 'attacking') {
-        updateAttack(customer, camera, time, delta);
+        updateAnomalyChase({
+          scene,
+          camera,
+          customer,
+          audio: anomalyAudio,
+          time,
+          delta,
+          onPlayerHit,
+          isBloodEnabled,
+          difficultyMultiplier: getDifficultyMultiplier(),
+        });
       }
     }
   };
@@ -148,7 +140,10 @@ export function createCustomerSystem(
     clearCustomers();
     started = false;
     nextCustomerAt = Number.POSITIVE_INFINITY;
+    nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
+    nightmareSpawnsRemaining = 0;
+    anomalyAudio.dispose();
   };
 
-  return { start, update, ...interactions, dispose };
+  return { start, startNightmareWave, summonInspector, update, ...interactions, dispose };
 }

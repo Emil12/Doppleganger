@@ -11,7 +11,9 @@ function horizontalDistance(first: THREE.Vector3, second: THREE.Vector3) {
 export function createCustomerInteractions(
   scene: THREE.Scene,
   customers: Customer[],
-  onAnomalyKilled: () => void,
+  onAnomalyKilled: (flawless: boolean) => void,
+  onInnocentShot: () => void,
+  isBloodEnabled: () => boolean,
 ) {
   const frontCustomer = () => customers.find(
     ({ phase, diedAt }) => phase === 'queue' && diedAt === null,
@@ -23,20 +25,30 @@ export function createCustomerInteractions(
       (model.root === object || model.root.getObjectById(object.id) !== undefined)
     ));
     if (!customer) return false;
+    if (customer.immortal) return true;
+    if (
+      !customer.model.isAnomaly
+      && customer.lastJudgementShotAt !== time
+    ) {
+      customer.lastJudgementShotAt = time;
+      onInnocentShot();
+    }
     customer.hitPoints = Math.max(0, customer.hitPoints - 1);
-    if (customer.lastBloodShotAt !== time) {
+    if (isBloodEnabled() && customer.lastBloodShotAt !== time) {
       customer.lastBloodShotAt = time;
       customer.bloodTrail.push(...createShotBloodPuddles(scene, customer.model.root.position));
     }
     if (customer.hitPoints > 0) return true;
     customer.diedAt = time;
-    if (customer.model.isAnomaly) onAnomalyKilled();
+    if (customer.model.isAnomaly) onAnomalyKilled(!customer.damagedPlayer);
     customer.model.idCard.visible = false;
-    customer.splatter = createCustomerSplatter(
-      scene,
-      customer.model.root.position,
-      customer.model.isAnomaly ? 1.65 : 1,
-    );
+    customer.splatter = isBloodEnabled()
+      ? createCustomerSplatter(
+          scene,
+          customer.model.root.position,
+          customer.model.isAnomaly ? 1.65 : 1,
+        )
+      : null;
     return true;
   };
 
@@ -54,12 +66,12 @@ export function createCustomerInteractions(
 
   const serveNext = (camera: THREE.Camera) => {
     const customer = frontCustomer();
-    if (!customer?.model.idCard.visible || checkoutDistance(camera) >= 2.5) return false;
+    if (!customer?.model.idCard.visible || checkoutDistance(camera) >= 2.5) return null;
     customer.phase = customer.model.isAnomaly ? 'attacking' : 'leaving';
     customer.routeIndex = 0;
     customer.model.idCard.visible = false;
     if (customer.model.isAnomaly) makeAnomalyHostile(customer.model);
-    return true;
+    return customer.model.isAnomaly ? 'anomaly' : 'buyer';
   };
 
   const refuseNext = (camera: THREE.Camera) => {

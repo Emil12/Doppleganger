@@ -17,3 +17,12 @@ export const STAFF_ROOM = {
   doorFront: -13.2,
   doorBack: -15.8,
 };
+
+export const RESTROOM = {
+  left: -7.8,
+  right: -4.4,
+  front: -23.5,
+  back: -27.5,
+  doorLeft: -6.65,
+  doorRight: -5.5,
+};

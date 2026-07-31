@@ -1,15 +1,15 @@
 export {
-  REVOLVER_CABINET_NAME,
-  REVOLVER_PICKUP_NAME,
   SHOTGUN_CABINET_NAME,
   SHOTGUN_PICKUP_NAME,
+  equipStartingWeapon,
   nearestWeaponCabinet,
   pickupWeapon,
   putBackWeapon,
+  resetWeapons,
 } from './weaponPickup';
 export {
-  fireRevolver,
-  fireShotgun,
+  fireWeapon,
+  setWeaponAiming,
   setWeaponReloading,
   updateWeaponEffects,
 } from './weaponFire';

@@ -19,11 +19,11 @@ export function createIdCard(isAnomaly: boolean) {
   const card = new THREE.Group();
   const face = new THREE.Mesh(
     new THREE.BoxGeometry(0.26, 0.17, 0.018),
-    customerMaterial(isAnomaly ? 0x39272b : 0xe8e2c9, 0.42, isAnomaly ? 0x4d080d : 0),
+    customerMaterial(isAnomaly ? 0xd8d2c2 : 0xe8e2c9, 0.42),
   );
   const photo = new THREE.Mesh(
     new THREE.PlaneGeometry(0.065, 0.09),
-    new THREE.MeshBasicMaterial({ color: isAnomaly ? 0xe23b43 : 0x526b73 }),
+    new THREE.MeshBasicMaterial({ color: isAnomaly ? 0x6f7775 : 0x526b73 }),
   );
   photo.position.set(-0.07, 0, -0.012);
   const text = new THREE.Mesh(

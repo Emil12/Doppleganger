@@ -33,6 +33,11 @@ export function createGameRenderer(
       if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
       renderer.render(scene, camera);
     },
+    renderToTarget(feedCamera: THREE.PerspectiveCamera, target: THREE.WebGLRenderTarget) {
+      renderer.setRenderTarget(target);
+      renderer.render(scene, feedCamera);
+      renderer.setRenderTarget(null);
+    },
     dispose() {
       renderer.dispose();
     },

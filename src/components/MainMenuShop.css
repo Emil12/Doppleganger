@@ -1,0 +1,74 @@
+.menu-shop {
+  display: grid;
+  gap: 10px;
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.1em;
+}
+
+.menu-shop header {
+  display: flex;
+  justify-content: space-between;
+  color: #8a958c;
+}
+
+.menu-shop header strong {
+  color: #e1ca71;
+}
+
+.menu-shop article {
+  padding: 13px;
+  border: 1px solid rgba(185, 169, 92, 0.35);
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  background: rgba(25, 33, 28, 0.78);
+}
+
+.menu-shop article > div:nth-child(2) {
+  display: grid;
+  gap: 5px;
+}
+
+.menu-shop article small,
+.menu-shop__signin small {
+  color: #768179;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.menu-shop article span {
+  color: #b8aa70;
+  font-size: 8px;
+}
+
+.menu-shop article button {
+  grid-column: 1 / -1;
+}
+
+.menu-shop button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  translate: none;
+}
+
+.menu-shop__medkit {
+  aspect-ratio: 1;
+  border: 2px solid #cac5ad;
+  display: grid;
+  place-items: center;
+  color: #e5ddc0;
+  background: #8e302f;
+  font-size: 27px;
+}
+
+.menu-shop__signin {
+  padding: 18px;
+  border: 1px solid rgba(164, 180, 165, 0.18);
+  display: grid;
+  gap: 7px;
+}
+
+.menu-shop__signin a {
+  width: fit-content;
+  color: #ddca74;
+}

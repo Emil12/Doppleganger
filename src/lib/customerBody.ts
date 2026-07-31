@@ -57,16 +57,16 @@ function addFace(head: THREE.Group, style: CustomerStyle, anomalousEyes: boolean
   const eyeY = 0.045;
   for (const x of [-0.085, 0.085]) {
     const eye = customerMesh(
-      new THREE.SphereGeometry(anomalousEyes ? 0.065 : 0.052, 12, 8),
-      anomalousEyes ? 0x260709 : 0xeee8dc,
+      new THREE.SphereGeometry(anomalousEyes ? 0.054 : 0.052, 12, 8),
+      anomalousEyes ? 0xd8d2c8 : 0xeee8dc,
     );
     eye.scale.y = 0.72;
     eye.position.set(x, eyeY, -0.225);
     const iris = customerMesh(
-      new THREE.SphereGeometry(anomalousEyes ? 0.034 : 0.025, 10, 7),
-      anomalousEyes ? 0xff202d : style.eyes,
+      new THREE.SphereGeometry(anomalousEyes ? 0.027 : 0.025, 10, 7),
+      anomalousEyes ? 0x59373a : style.eyes,
       0.38,
-      anomalousEyes ? 0x8b050c : 0,
+      anomalousEyes ? 0x160204 : 0,
     );
     iris.position.set(x, eyeY, -0.268);
     iris.scale.y = 0.76;

@@ -1,0 +1,69 @@
+@keyframes jumpscare-blackout {
+  0%, 13% { opacity: 1; background: #000; filter: brightness(0); }
+  14% { background: #5a0000; filter: brightness(4) contrast(3); }
+  19% { filter: invert(1) contrast(4); }
+  23%, 84% { background: #100000; filter: brightness(1) contrast(1.7); }
+  89% { filter: invert(1) brightness(3); }
+  100% { opacity: 0; filter: brightness(0); }
+}
+
+@keyframes jumpscare-lunge {
+  0%, 13% { transform: scale(0); opacity: 0; }
+  14% { transform: scale(0.28) rotate(-12deg); opacity: 1; }
+  20% { transform: scale(1.7) rotate(7deg); }
+  38% { transform: scale(2.1) rotate(-5deg); }
+  58% { transform: scale(2.55) rotate(5deg); }
+  78% { transform: scale(3.1) rotate(-3deg); }
+  100% { transform: scale(3.7) rotate(2deg); }
+}
+
+@keyframes jumpscare-warning {
+  0%, 4% { opacity: 0; }
+  5%, 11% { opacity: 0.75; transform: scale(1); }
+  13%, 100% { opacity: 0; transform: scale(2.4); }
+}
+
+@keyframes jumpscare-after-left {
+  0%, 15% { opacity: 0; transform: translateX(-60%) scale(0.4); }
+  20%, 48% { opacity: 0.55; transform: translateX(-18%) scale(1.8) rotate(-8deg); }
+  70%, 100% { opacity: 0; transform: translateX(-35%) scale(3); }
+}
+
+@keyframes jumpscare-after-right {
+  0%, 17% { opacity: 0; transform: translateX(60%) scale(0.4); }
+  23%, 52% { opacity: 0.5; transform: translateX(18%) scale(1.9) rotate(9deg); }
+  72%, 100% { opacity: 0; transform: translateX(38%) scale(3.2); }
+}
+
+@keyframes jumpscare-shake {
+  0% { translate: -4% 2%; }
+  25% { translate: 5% -4%; }
+  50% { translate: -5% -2%; }
+  75% { translate: 4% 5%; }
+  100% { translate: 0; }
+}
+
+@keyframes jumpscare-noise {
+  from { transform: translate(-3%, -3%) scale(1.05); }
+  to { transform: translate(3%, 3%) scale(1.12); }
+}
+
+@keyframes jumpscare-claws {
+  to { width: 52%; filter: drop-shadow(0 0 45px #ff2115); }
+}
+
+@keyframes jumpscare-eyes {
+  to { transform: scaleY(0.58) rotate(5deg); filter: brightness(3.5); }
+}
+
+@keyframes jumpscare-text {
+  to { transform: translateX(12px) skewX(-12deg) scale(1.06); opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jumpscare,
+  .jumpscare * {
+    animation-duration: 1.52s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

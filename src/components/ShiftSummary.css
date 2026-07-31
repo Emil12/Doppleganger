@@ -63,6 +63,31 @@
   cursor: pointer;
 }
 
+.shift-summary__reward {
+  margin: -8px 0 22px;
+  padding: 13px;
+  border: 1px solid rgba(222, 194, 90, 0.45);
+  display: grid;
+  gap: 6px;
+  background: rgba(68, 58, 18, 0.22);
+}
+
+.shift-summary__reward span {
+  color: #8f9990;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+.shift-summary__reward strong {
+  color: #e3c86f;
+  font-size: 17px;
+}
+
+.shift-summary button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .shift-summary button:hover {
   color: #101511;
   background: #e3c86f;

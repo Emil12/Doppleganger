@@ -2,16 +2,20 @@ import './GameHud.css';
 import { GameClock } from './GameClock';
 import { type CheckoutKind } from '../lib/customerSystem';
 import { type WeaponKind, WEAPON_CONFIG } from '../lib/gameWeapon';
+import { type DoorLabel } from '../lib/staffDoor';
 
 type GameHudProps = {
-  inside: boolean;
+  hidden: boolean;
   playing: boolean;
-  showStartScreen: boolean;
   shiftNumber: number;
   onShiftEnd: () => void;
   stamina: number;
+  exhausted: boolean;
   health: number;
+  judgementPoints: number;
+  medkits: number;
   weapon: WeaponKind | null;
+  activeSlot: 1 | null;
   ammo: number;
   capacity: number;
   nearbyWeapon: WeaponKind | null;
@@ -21,18 +25,21 @@ type GameHudProps = {
   nearMedkit: boolean;
   checkoutKind: CheckoutKind | null;
   doorOpen: boolean;
-  doorLabel: 'STAFF DOOR' | 'BACK DOOR';
+  doorLabel: DoorLabel;
 };
 
 export function GameHud({
-  inside,
+  hidden,
   playing,
-  showStartScreen,
   shiftNumber,
   onShiftEnd,
   stamina,
+  exhausted,
   health,
+  judgementPoints,
+  medkits,
   weapon,
+  activeSlot,
   ammo,
   capacity,
   nearbyWeapon,
@@ -49,20 +56,27 @@ export function GameHud({
   return (
     <>
       <div className="screen-noise" aria-hidden="true" />
-      {showStartScreen && (
-        <div className="start-screen">
-          CLICK TO ENTER
-          <br />
-          <small>DRAG TO LOOK ON MOBILE</small>
-        </div>
-      )}
       <div className="shift-badge">
         <span>SHIFT</span>
         <strong>{String(shiftNumber).padStart(2, '0')}</strong>
       </div>
-      <p className={`location-label ${inside ? 'location-label--inside' : ''}`}>
-        {inside ? 'INSIDE: SMELLS LIKE OLD HOT DOGS' : 'OUTSIDE: WALK THROUGH THE OPEN DOOR'}
-      </p>
+      <div className={`judgement-points ${
+        judgementPoints === 0 ? 'judgement-points--empty' : ''
+      }`} aria-label={`${judgementPoints} judgement hearts remaining`}>
+        <span>{judgementPoints === 0 ? 'INSPECTOR' : 'JUDGEMENT'}</span>
+        <strong className="judgement-hearts">
+          {Array.from({ length: 5 }, (_, index) => (
+            <i
+              key={index}
+              className={index < judgementPoints ? 'is-full' : 'is-empty'}
+              aria-hidden="true"
+            >
+              {index < judgementPoints ? '♥' : '♡'}
+            </i>
+          ))}
+        </strong>
+      </div>
+      {hidden && <p className="hidden-indicator">HIDDEN · STAY QUIET</p>}
       <GameClock playing={playing} shiftNumber={shiftNumber} onShiftEnd={onShiftEnd} />
       <div className="health-meter" role="progressbar" aria-label="Health" aria-valuenow={health}>
         <div className="health-meter__header">
@@ -73,15 +87,26 @@ export function GameHud({
           <span style={{ width: `${health}%` }} />
         </div>
       </div>
-      <div className="sprint-meter" role="progressbar" aria-label="Sprint stamina" aria-valuenow={stamina}>
+      <div
+        className={`sprint-meter ${exhausted ? 'sprint-meter--exhausted' : ''}`}
+        role="progressbar"
+        aria-label="Sprint stamina"
+        aria-valuenow={stamina}
+      >
         <div className="sprint-meter__header">
-          <span>SPRINT</span>
+          <span>{exhausted ? 'EXHAUSTED' : 'SPRINT'}</span>
           <span>{stamina}%</span>
         </div>
         <div className="sprint-meter__track">
           <span style={{ width: `${stamina}%` }} />
         </div>
       </div>
+      {medkits > 0 && (
+        <div className="portable-medkit">
+          <span>H · MEDKIT</span>
+          <strong>× {medkits}</strong>
+        </div>
+      )}
       {nearMess && <p className="pickup-prompt pickup-prompt--danger">E · CLEAN THE MESS</p>}
       {!nearMess && nearMedkit && (
         <p className="pickup-prompt pickup-prompt--healing">E · USE MEDKIT</p>
@@ -103,14 +128,14 @@ export function GameHud({
           {weapon ? `E · PUT BACK ${weaponLabel}` : `E · PICK UP ${nearbyWeaponLabel}`}
         </p>
       )}
-      {weapon && (
+      {weapon && activeSlot === 1 && (
         <div className={`weapon-hud ${ammo === 0 ? 'weapon-hud--empty' : ''}`}>
           <span>{weaponLabel}</span>
           <strong>{ammo} / {capacity}</strong>
           <small>
             {reloading
-              ? weapon === 'shotgun' ? 'BREAK-ACTION RELOAD…' : 'RELOADING…'
-              : ammo > 0 ? 'CLICK · SHOOT · R RELOAD' : 'EMPTY · R RELOAD'}
+              ? `LOADING SHELLS… ${ammo} / ${capacity}`
+              : ammo > 0 ? 'LMB SHOOT · RMB AIM · R RELOAD' : 'EMPTY · R RELOAD'}
           </small>
         </div>
       )}

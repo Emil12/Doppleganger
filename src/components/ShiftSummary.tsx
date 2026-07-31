@@ -1,13 +1,28 @@
 import { type ShiftStats } from '../lib/gameShift';
+import { type GameDifficulty } from '../lib/gameSettings';
 import './ShiftSummary.css';
 
 type ShiftSummaryProps = {
   shiftNumber: number;
   stats: ShiftStats;
+  runComplete: boolean;
+  coinReward: number;
+  rewardPending: boolean;
+  rewardAvailable: boolean;
+  mode: GameDifficulty;
   onContinue: () => void;
 };
 
-export function ShiftSummary({ shiftNumber, stats, onContinue }: ShiftSummaryProps) {
+export function ShiftSummary({
+  shiftNumber,
+  stats,
+  runComplete,
+  coinReward,
+  rewardPending,
+  rewardAvailable,
+  mode,
+  onContinue,
+}: ShiftSummaryProps) {
   return (
     <div className="shift-summary" role="dialog" aria-modal="true" aria-label="Shift summary">
       <div className="shift-summary__content">
@@ -27,8 +42,22 @@ export function ShiftSummary({ shiftNumber, stats, onContinue }: ShiftSummaryPro
             <dd>{stats.anomaliesShot}</dd>
           </div>
         </dl>
-        <button type="button" onClick={onContinue}>
-          START SHIFT {String(shiftNumber + 1).padStart(2, '0')}
+        {(runComplete || coinReward > 0) && (
+          <div className="shift-summary__reward">
+            <span>
+              {runComplete ? `${mode.toUpperCase()} MODE COMPLETE` : 'ENDLESS MILESTONE'}
+            </span>
+            <strong>
+              {rewardPending
+                ? 'CREDITING REWARD…'
+                : rewardAvailable ? `+${coinReward} COINS` : 'SIGN IN TO EARN COINS'}
+            </strong>
+          </div>
+        )}
+        <button type="button" onClick={onContinue} disabled={rewardPending}>
+          {runComplete
+            ? 'RETURN TO MAIN MENU'
+            : `START SHIFT ${String(shiftNumber + 1).padStart(2, '0')}`}
         </button>
       </div>
     </div>

@@ -1,0 +1,93 @@
+.menu-effects {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.menu-effects__searchlight {
+  position: absolute;
+  top: 32%;
+  right: -18%;
+  width: 75%;
+  height: 14%;
+  opacity: 0.12;
+  background: linear-gradient(90deg, transparent, #e2dcaf 70%, transparent);
+  filter: blur(10px);
+  transform-origin: right center;
+  animation: searchlight-sweep 9s ease-in-out infinite alternate;
+}
+
+.menu-effects__rain {
+  position: absolute;
+  inset: -30%;
+  opacity: 0.18;
+  background-image: repeating-linear-gradient(
+    102deg,
+    transparent 0 18px,
+    rgba(214, 222, 207, 0.55) 19px,
+    transparent 20px 38px
+  );
+  background-size: 38px 85px;
+  filter: blur(0.4px);
+  transform: rotate(-4deg);
+  animation: rain-fall 520ms linear infinite;
+}
+
+.menu-effects__power-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: rgba(199, 207, 185, 0.18);
+  mix-blend-mode: screen;
+  animation: power-flash 11s steps(1) infinite;
+}
+
+.menu-effects__ash {
+  position: absolute;
+  inset: 0;
+}
+
+.menu-effects__ash i {
+  position: absolute;
+  top: -10px;
+  left: 8%;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  background: #d3cfb2;
+  box-shadow: 0 0 5px rgba(211, 207, 178, 0.4);
+  animation: ash-fall 7s linear infinite;
+}
+
+.menu-effects__ash i:nth-child(2) { left: 17%; animation-delay: -5s; }
+.menu-effects__ash i:nth-child(3) { left: 26%; animation-delay: -2s; animation-duration: 9s; }
+.menu-effects__ash i:nth-child(4) { left: 38%; animation-delay: -7s; }
+.menu-effects__ash i:nth-child(5) { left: 47%; animation-delay: -3s; animation-duration: 11s; }
+.menu-effects__ash i:nth-child(6) { left: 57%; animation-delay: -8s; }
+.menu-effects__ash i:nth-child(7) { left: 65%; animation-delay: -1s; animation-duration: 8s; }
+.menu-effects__ash i:nth-child(8) { left: 73%; animation-delay: -6s; }
+.menu-effects__ash i:nth-child(9) { left: 81%; animation-delay: -4s; animation-duration: 10s; }
+.menu-effects__ash i:nth-child(10) { left: 90%; animation-delay: -9s; }
+.menu-effects__ash i:nth-child(11) { left: 95%; animation-delay: -2s; animation-duration: 12s; }
+.menu-effects__ash i:nth-child(12) { left: 52%; animation-delay: -10s; }
+
+@keyframes searchlight-sweep {
+  from { rotate: -7deg; translate: 0 -90px; }
+  to { rotate: 10deg; translate: 0 110px; }
+}
+
+@keyframes rain-fall {
+  to { translate: 0 85px; }
+}
+
+@keyframes power-flash {
+  0%, 84%, 86%, 88%, 100% { opacity: 0; }
+  85%, 87% { opacity: 1; }
+}
+
+@keyframes ash-fall {
+  15% { opacity: 0.5; }
+  100% { opacity: 0; translate: 70px 105vh; }
+}

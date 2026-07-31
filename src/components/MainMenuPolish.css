@@ -1,0 +1,128 @@
+.menu-effects__cursor-light {
+  position: absolute;
+  inset: 0;
+  opacity: 0.34;
+  background: radial-gradient(
+    circle 260px at var(--cursor-x, 68%) var(--cursor-y, 42%),
+    rgba(213, 207, 165, 0.16),
+    rgba(117, 133, 114, 0.05) 40%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  transition: background 80ms linear;
+}
+
+.menu-effects__wet-road {
+  position: absolute;
+  right: -5%;
+  bottom: 1%;
+  width: 72%;
+  height: 24%;
+  opacity: 0.38;
+  background:
+    linear-gradient(100deg, transparent 5%, rgba(189, 174, 105, 0.18) 34%, transparent 38%),
+    linear-gradient(80deg, transparent 54%, rgba(148, 45, 48, 0.14) 57%, transparent 61%),
+    repeating-linear-gradient(90deg, transparent 0 19%, rgba(183, 192, 166, 0.05) 20% 21%);
+  filter: blur(5px);
+  clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+  animation: road-shimmer 4s ease-in-out infinite alternate;
+}
+
+.menu-effects__vhs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.menu-effects__vhs i {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 3px;
+  opacity: 0;
+  background: rgba(198, 203, 181, 0.36);
+  box-shadow: 0 3px rgba(118, 35, 41, 0.28);
+  mix-blend-mode: screen;
+  animation: vhs-tear 7s steps(1) infinite;
+}
+
+.menu-effects__vhs i:nth-child(1) { top: 24%; }
+.menu-effects__vhs i:nth-child(2) { top: 56%; animation-delay: -3s; }
+.menu-effects__vhs i:nth-child(3) { top: 78%; animation-delay: -5s; }
+
+.menu-effects__frame {
+  position: absolute;
+  inset: 15px;
+}
+
+.menu-effects__frame i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  opacity: 0.34;
+  border-color: #bdaf74;
+  border-style: solid;
+}
+
+.menu-effects__frame i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px;
+}
+
+.menu-effects__frame i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-width: 1px 1px 0 0;
+}
+
+.menu-effects__frame i:nth-child(3) {
+  right: 0;
+  bottom: 20px;
+  border-width: 0 1px 1px 0;
+}
+
+.menu-effects__frame i:nth-child(4) {
+  bottom: 20px;
+  left: 0;
+  border-width: 0 0 1px 1px;
+}
+
+.menu-effects__motion {
+  position: absolute;
+  right: clamp(30px, 8vw, 130px);
+  top: 16%;
+  padding: 7px 9px;
+  border: 1px solid rgba(176, 54, 57, 0.35);
+  color: rgba(220, 106, 101, 0.64);
+  background: rgba(30, 7, 9, 0.44);
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.13em;
+  animation: motion-warning 6s steps(1) infinite;
+}
+
+@keyframes road-shimmer {
+  to { opacity: 0.58; filter: blur(7px); translate: -1% 0; }
+}
+
+@keyframes vhs-tear {
+  0%, 88%, 92%, 100% { opacity: 0; translate: 0; }
+  89% { opacity: 0.7; translate: 7% 0; scale: 1 6; }
+  90% { opacity: 0.3; translate: -5% 0; scale: 1 2; }
+  91% { opacity: 0.55; translate: 2% 0; }
+}
+
+@keyframes motion-warning {
+  0%, 72%, 76%, 100% { opacity: 0; }
+  73%, 75% { opacity: 1; }
+}
+
+@media (max-width: 680px) {
+  .menu-effects__motion {
+    display: none;
+  }
+
+  .menu-effects__frame {
+    inset: 8px;
+  }
+}
