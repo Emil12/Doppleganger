@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import { createCustomerSplatter, createShotBloodPuddles } from './customerMess';
+import {
+  createCustomerSplatter,
+  createShotBloodPuddles,
+  MAX_BLOOD_MARKS_PER_CUSTOMER,
+} from './customerMess';
 import { type CheckoutKind, type Customer } from './customerTypes';
 import { makeAnomalyHostile } from './anomalyModel';
 import { disposeCustomerModel } from './customerModel';
@@ -37,6 +41,9 @@ export function createCustomerInteractions(
     if (isBloodEnabled() && customer.lastBloodShotAt !== time) {
       customer.lastBloodShotAt = time;
       customer.bloodTrail.push(...createShotBloodPuddles(scene, customer.model.root.position));
+      while (customer.bloodTrail.length > MAX_BLOOD_MARKS_PER_CUSTOMER) {
+        customer.bloodTrail.shift()?.removeFromParent();
+      }
     }
     if (customer.hitPoints > 0) return true;
     customer.diedAt = time;

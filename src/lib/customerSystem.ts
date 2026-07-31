@@ -115,7 +115,9 @@ export function createCustomerSystem(
     for (let index = customers.length - 1; index >= 0; index -= 1) {
       const customer = customers[index];
       if (customer.diedAt !== null) {
-        animateCustomerDeath(customer.model, time - customer.diedAt);
+        if (customer.model.root.visible) {
+          animateCustomerDeath(customer.model, time - customer.diedAt);
+        }
       } else if (customer.phase === 'shopping') {
         updateShoppingPhase(customer, time, delta);
       } else if (customer.phase === 'leaving' && !updateLeavingPhase(customer, time, delta)) {

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { type AnomalyAudio } from './anomalyAudio';
 import { ANOMALY_PROFILES } from './anomalyTypes';
 import { type Customer } from './customerTypes';
-import { createBloodDrop } from './customerMess';
+import { createBloodDrop, MAX_BLOOD_MARKS_PER_CUSTOMER } from './customerMess';
 import { moveCustomer } from './customerRoute';
 import { isHiddenInRestroom } from './gasStationRestroom';
 
@@ -53,6 +53,8 @@ export function updateAnomalyChase(options: ChaseOptions) {
   if (options.isBloodEnabled() && time >= customer.nextBloodDropAt) {
     customer.nextBloodDropAt = time + profile.bloodDropInterval;
     customer.bloodTrail.push(createBloodDrop(scene, customer.model.root.position));
-    if (customer.bloodTrail.length > 32) customer.bloodTrail.shift()?.removeFromParent();
+    while (customer.bloodTrail.length > MAX_BLOOD_MARKS_PER_CUSTOMER) {
+      customer.bloodTrail.shift()?.removeFromParent();
+    }
   }
 }

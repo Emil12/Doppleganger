@@ -39,8 +39,23 @@ function createInstances(
   material: THREE.Material,
   count: number,
 ) {
-  const instances = new THREE.InstancedMesh(geometry, material, count);
-  return instances;
+  return new THREE.InstancedMesh(geometry, material, count);
+}
+
+function createSpatialChunks<T>() {
+  return Array.from({ length: 4 }, () => [] as T[]);
+}
+
+function getChunkIndex(x: number, z: number) {
+  return (x >= 0 ? 1 : 0) + (z >= 0 ? 2 : 0);
+}
+
+function addFinishedInstances(scene: THREE.Scene, instances: THREE.InstancedMesh[]) {
+  instances.forEach((mesh) => {
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  });
+  scene.add(...instances);
 }
 
 function addTrees(scene: THREE.Scene) {
@@ -52,35 +67,47 @@ function addTrees(scene: THREE.Scene) {
   const needleMaterials = [0x263c2d, 0x304a35, 0x1f3428].map(
     (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, flatShading: true }),
   );
-  const trunks = createInstances(new THREE.CylinderGeometry(0.24, 0.36, 1, 7), trunkMaterial, FOREST_TREES.length);
-  const crowns = needleMaterials.map((material, layer) =>
-    createInstances(new THREE.ConeGeometry(1, 2.6 - layer * 0.2, 7), material, FOREST_TREES.length),
+  const trunkGeometry = new THREE.CylinderGeometry(0.24, 0.36, 1, 7);
+  const crownGeometries = needleMaterials.map(
+    (_, layer) => new THREE.ConeGeometry(1, 2.6 - layer * 0.2, 7),
   );
+  const chunks = createSpatialChunks<{ tree: ForestTree; sourceIndex: number }>();
+  FOREST_TREES.forEach((tree, sourceIndex) => {
+    chunks[getChunkIndex(tree[0], tree[1])].push({ tree, sourceIndex });
+  });
   const transform = new THREE.Matrix4();
 
-  FOREST_TREES.forEach(([x, z, scale], index) => {
-    const height = 4.8 * scale;
-    transform.compose(
-      new THREE.Vector3(x, height * 0.45, z),
-      new THREE.Quaternion(),
-      new THREE.Vector3(scale, height * 0.9, scale),
+  chunks.forEach((chunk) => {
+    if (chunk.length === 0) return;
+    const trunks = createInstances(trunkGeometry, trunkMaterial, chunk.length);
+    const crowns = needleMaterials.map((material, layer) =>
+      createInstances(crownGeometries[layer], material, chunk.length),
     );
-    trunks.setMatrixAt(index, transform);
 
-    crowns.forEach((crown, layer) => {
-      const layerScale = scale * (1.35 - layer * 0.2);
+    chunk.forEach(({ tree: [x, z, scale], sourceIndex }, instanceIndex) => {
+      const height = 4.8 * scale;
       transform.compose(
-        new THREE.Vector3(x, 2.3 * scale + layer * 1.35 * scale, z),
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(0, 1, 0),
-          random(index, layer + 10) * Math.PI,
-        ),
-        new THREE.Vector3(layerScale, scale, layerScale),
+        new THREE.Vector3(x, height * 0.45, z),
+        new THREE.Quaternion(),
+        new THREE.Vector3(scale, height * 0.9, scale),
       );
-      crown.setMatrixAt(index, transform);
+      trunks.setMatrixAt(instanceIndex, transform);
+
+      crowns.forEach((crown, layer) => {
+        const layerScale = scale * (1.35 - layer * 0.2);
+        transform.compose(
+          new THREE.Vector3(x, 2.3 * scale + layer * 1.35 * scale, z),
+          new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            random(sourceIndex, layer + 10) * Math.PI,
+          ),
+          new THREE.Vector3(layerScale, scale, layerScale),
+        );
+        crown.setMatrixAt(instanceIndex, transform);
+      });
     });
+    addFinishedInstances(scene, [trunks, ...crowns]);
   });
-  scene.add(trunks, ...crowns);
 }
 
 function addForestFloor(scene: THREE.Scene) {
@@ -89,23 +116,29 @@ function addForestFloor(scene: THREE.Scene) {
     roughness: 1,
     flatShading: true,
   });
-  const shrubs = createInstances(new THREE.DodecahedronGeometry(0.55, 0), material, 64);
+  const geometry = new THREE.DodecahedronGeometry(0.55, 0);
+  const chunks = createSpatialChunks<readonly [x: number, y: number, z: number, scale: number]>();
   const transform = new THREE.Matrix4();
   for (let index = 0; index < 64; index += 1) {
     const tree = FOREST_TREES[(index * 7) % FOREST_TREES.length];
     const scale = 0.35 + random(index, 15) * 0.65;
-    transform.compose(
-      new THREE.Vector3(
-        tree[0] + random(index, 16) * 4 - 2,
-        scale * 0.35,
-        tree[1] + random(index, 17) * 4 - 2,
-      ),
-      new THREE.Quaternion(),
-      new THREE.Vector3(scale * 1.4, scale, scale),
-    );
-    shrubs.setMatrixAt(index, transform);
+    const x = tree[0] + random(index, 16) * 4 - 2;
+    const z = tree[1] + random(index, 17) * 4 - 2;
+    chunks[getChunkIndex(x, z)].push([x, scale * 0.35, z, scale]);
   }
-  scene.add(shrubs);
+  chunks.forEach((chunk) => {
+    if (chunk.length === 0) return;
+    const shrubs = createInstances(geometry, material, chunk.length);
+    chunk.forEach(([x, y, z, scale], index) => {
+      transform.compose(
+        new THREE.Vector3(x, y, z),
+        new THREE.Quaternion(),
+        new THREE.Vector3(scale * 1.4, scale, scale),
+      );
+      shrubs.setMatrixAt(index, transform);
+    });
+    addFinishedInstances(scene, [shrubs]);
+  });
 }
 
 export function addGasStationForest(scene: THREE.Scene) {

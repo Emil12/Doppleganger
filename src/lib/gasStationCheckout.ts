@@ -5,6 +5,7 @@ import {
 } from './gameWeapon';
 import { lowPolyBox } from './lowPolyGeometry';
 import { createShotgunModel } from './shotgunModel';
+import { markCullable } from './entityCulling';
 
 type Position = [number, number, number];
 type Size = [number, number, number];
@@ -90,7 +91,7 @@ function addCounterDetails(group: THREE.Group) {
 }
 
 export function addCheckoutStation(scene: THREE.Scene) {
-  const checkout = new THREE.Group();
+  const checkout = markCullable(new THREE.Group(), 3.8, 70);
   checkout.position.set(6.15, 0, -14.5);
   part(checkout, 0x31513c, [1.25, 1.05, 4.4], [0, 0.55, 0]);
   part(checkout, 0x2a302d, [1.42, 0.16, 4.58], [0, 1.1, 0]);

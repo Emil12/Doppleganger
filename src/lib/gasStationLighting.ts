@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markDistanceCullable } from './entityCulling';
 
 type Position = [number, number, number];
 
@@ -34,6 +35,7 @@ function addCeilingLight(
   scene.add(tube);
 
   const light = new THREE.SpotLight(color, intensity, 13, Math.PI / 3, 0.65, 1.7);
+  markDistanceCullable(light, 20);
   light.position.set(position[0], position[1] - 0.12, position[2]);
   light.target.position.set(position[0], 0, position[2]);
   light.castShadow = castsShadow;
@@ -52,6 +54,7 @@ function addEntranceLight(scene: THREE.Scene, x: number) {
   scene.add(bulb);
 
   const light = new THREE.PointLight(warmWhite, 18, 7, 1.8);
+  markDistanceCullable(light, 14);
   light.position.copy(bulb.position);
   scene.add(light);
 }

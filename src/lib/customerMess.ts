@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { CustomerModel } from './customerModel';
 import { RESTROOM, SHOP, STAFF_ROOM } from './gasStationLayout';
+import { markCullable } from './entityCulling';
 
 const FLOOR_GAP = 0.006;
 const INDOOR_FLOOR_HEIGHT = 0.075;
 const CONCRETE_HEIGHT = -0.05;
 const ROAD_HEIGHT = 0.04;
+export const MAX_BLOOD_MARKS_PER_CUSTOMER = 24;
 
 function floorHeight(position: THREE.Vector3) {
   const insideShop = position.x >= SHOP.left
@@ -86,6 +88,7 @@ export function createCustomerSplatter(
       index,
     ));
   }
+  markCullable(splatter, 2.7 * intensity, 38);
   scene.add(splatter);
   return splatter;
 }
@@ -96,6 +99,7 @@ export function createBloodDrop(scene: THREE.Scene, position: THREE.Vector3) {
   drop.position.set(position.x, floorHeight(position), position.z);
   drop.add(stain(0.34, 0x681018, 0, 0, position.x + position.z));
   drop.add(stain(0.13, 0x9d1820, 0.3, -0.12, position.z));
+  markCullable(drop, 0.8, 32);
   scene.add(drop);
   return drop;
 }

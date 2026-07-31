@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { lowPolyBox } from './lowPolyGeometry';
+import { markCullable } from './entityCulling';
 
 export const SHOP_SHELF_BOUNDS = [
   { minX: -4.1, maxX: 1.5, minZ: -16.8, maxZ: -15.6 },
@@ -70,7 +71,7 @@ function addProducts(group: THREE.Group, side: number, materials: THREE.Material
 }
 
 function buildShelf(z: number, materials: THREE.Material[]) {
-  const shelf = new THREE.Group();
+  const shelf = markCullable(new THREE.Group(), 3.8, 70);
   shelf.position.set(-1.3, 0, z);
   shelfPart(shelf, [5.6, 1.85, 0.1], [0, 0.98, 0], 0x3b4741);
   for (const y of [0.14, 0.7, 1.28, 1.88]) {

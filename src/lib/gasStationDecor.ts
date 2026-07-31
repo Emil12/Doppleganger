@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markDistanceCullable } from './entityCulling';
 
 type Size = [number, number, number];
 type Position = [number, number, number];
@@ -85,11 +86,13 @@ function addLighting(scene: THREE.Scene) {
     box(scene, 0xf0dda0, [2.1, 0.08, 0.65], [x, 4.39, -4], 0x9b732e);
   }
   const canopyLight = new THREE.SpotLight(0xffdda0, 85, 15, Math.PI / 2.4, 0.8, 1.5);
+  markDistanceCullable(canopyLight, 22);
   canopyLight.position.set(0, 4.1, -4);
   canopyLight.target.position.set(0, 0, -4);
   scene.add(canopyLight.target);
   scene.add(canopyLight);
   const shopLight = new THREE.PointLight(0xffe4aa, 28, 14, 1.6);
+  markDistanceCullable(shopLight, 22);
   shopLight.position.set(0, 3.4, -16.5);
   scene.add(shopLight);
 }

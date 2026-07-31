@@ -24,6 +24,7 @@ import { createFootstepAudio } from '../lib/footstepAudio';
 import { createCustomerSystem, type CheckoutKind } from '../lib/customerSystem';
 import { type QueueDialogue as QueueDialogueState } from '../lib/customerDialogue';
 import { createDaylightCycle } from '../lib/daylightCycle';
+import { createEntityCullingSystem } from '../lib/entityCulling';
 import {
   addGameCoins,
   buyGameClass,
@@ -559,12 +560,14 @@ export function GasStationGame() {
     camera.position.set(0, 1.65, 8);
     camera.rotation.order = 'YXZ';
     const playerAvatar = createPlayerAvatarSystem(scene, camera);
+    const entityCulling = createEntityCullingSystem(scene);
     let previousTime = performance.now();
     let frame = 0;
     let wasHidden = false;
     let nextIdleRenderAt = 0;
     let nextEnvironmentUpdateAt = 0;
     let nextProximityUpdateAt = 0;
+    let nextCullingUpdateAt = 0;
     const jump = { height: 0, velocity: 0 };
     const sprint = { stamina: 100, exhausted: false };
     const crouch = { amount: 0 };
@@ -757,6 +760,10 @@ export function GasStationGame() {
       updateWeaponEffects(scene, delta);
       updateStaffDoors(scene, delta);
       customers.update(time, delta, camera);
+      if (time >= nextCullingUpdateAt) {
+        entityCulling.update(camera, time);
+        nextCullingUpdateAt = time + 50;
+      }
       if (time >= nextEnvironmentUpdateAt) {
         daylight.update(Date.now());
         nextEnvironmentUpdateAt = time + 100;
@@ -771,7 +778,9 @@ export function GasStationGame() {
         nextProximityUpdateAt = time + 50;
       }
       playerAvatar.renderMirror((mirrorCamera, target) => {
+        entityCulling.update(mirrorCamera, time, true);
         renderer.renderToTarget(mirrorCamera, target);
+        entityCulling.update(camera, time, true);
       });
       renderer.render();
       frame = requestAnimationFrame(animate);
@@ -784,6 +793,7 @@ export function GasStationGame() {
       detachInput();
       actions.dispose();
       playerAvatar.dispose();
+      entityCulling.dispose();
       footsteps.dispose();
       weaponAudio.dispose();
       customers.dispose();

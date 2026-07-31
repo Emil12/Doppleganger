@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markDistanceCullable } from './entityCulling';
 import { RESTROOM } from './gasStationLayout';
 import {
   RESTROOM_DOOR_ANCHOR_NAME,
@@ -140,7 +141,7 @@ export function addRestroom(scene: THREE.Scene) {
   addSign(scene);
   addToilet(scene);
   addSinkAndMirror(scene);
-  const light = new THREE.PointLight(0xd7e5ce, 16, 5, 1.8);
+  const light = markDistanceCullable(new THREE.PointLight(0xd7e5ce, 16, 5, 1.8), 12);
   light.position.set(
     (RESTROOM.left + RESTROOM.right) / 2,
     2.75,

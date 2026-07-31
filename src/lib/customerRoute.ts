@@ -39,13 +39,13 @@ export function moveCustomer(
   const distance = Math.hypot(xDistance, zDistance);
   if (distance < 0.04) {
     position.set(target.x, 0, target.z);
-    animateCustomer(model, time, false);
+    if (model.root.visible) animateCustomer(model, time, false);
     return true;
   }
   const movement = Math.min(WALK_SPEED * delta, distance);
   position.x += (xDistance / distance) * movement;
   position.z += (zDistance / distance) * movement;
   model.root.rotation.y = Math.atan2(-xDistance, -zDistance);
-  animateCustomer(model, time, true);
+  if (model.root.visible) animateCustomer(model, time, true);
   return false;
 }

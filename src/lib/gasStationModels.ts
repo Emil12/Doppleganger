@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PUMP_POSITIONS } from './gasStationLayout';
 import { lowPolyBox } from './lowPolyGeometry';
+import { markCullable } from './entityCulling';
 
 function material(color: number, metalness = 0.1, roughness = 0.55) {
   return new THREE.MeshStandardMaterial({
@@ -49,7 +50,7 @@ function addPumpDetails(scene: THREE.Scene, x: number) {
 }
 
 function addCar(scene: THREE.Scene) {
-  const car = new THREE.Group();
+  const car = markCullable(new THREE.Group(), 3.3, 60);
   car.position.set(-11, 0, 2.5);
   car.rotation.y = -0.13;
   scene.add(car);

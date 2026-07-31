@@ -3,6 +3,7 @@ import { ANOMALY_PROFILES } from './anomalyTypes';
 import { createCustomerModel } from './customerModel';
 import { SHOPPING_ROUTE } from './customerRoute';
 import { type Customer } from './customerTypes';
+import { markCullable } from './entityCulling';
 
 export function createCustomerSpawner(
   scene: THREE.Scene,
@@ -13,6 +14,7 @@ export function createCustomerSpawner(
 
   return (isAnomaly = false) => {
     const model = createCustomerModel(customerNumber, isAnomaly);
+    markCullable(model.root, 3, 55);
     customerNumber += 1;
     model.root.position.set(SHOPPING_ROUTE[0].x, 0, SHOPPING_ROUTE[0].z);
     scene.add(model.root);

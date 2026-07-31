@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { markDistanceCullable } from './entityCulling';
 import { STAFF_ROOM } from './gasStationLayout';
 import { PixelTexture, pixelMaterial } from './pixelTextures';
 import {
@@ -133,7 +134,7 @@ function addFurniture(scene: THREE.Scene) {
 function addLights(scene: THREE.Scene) {
   for (const z of [-12, -18.5, -25]) {
     box(scene, 0xece4c1, [2.8, 0.08, 0.35], [12, 3.9, z]);
-    const light = new THREE.PointLight(0xffe7bd, 32, 9, 1.8);
+    const light = markDistanceCullable(new THREE.PointLight(0xffe7bd, 32, 9, 1.8), 16);
     light.position.set(12, 3.72, z);
     scene.add(light);
   }

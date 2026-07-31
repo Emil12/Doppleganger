@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { lowPolyBox } from './lowPolyGeometry';
+import { markCullable } from './entityCulling';
 
 const FREEZER_X = -7.78;
 const FREEZER_Z = [-20.5, -15.8] as const;
@@ -22,7 +23,7 @@ function part(
 }
 
 function buildFreezer(z: number) {
-  const group = new THREE.Group();
+  const group = markCullable(new THREE.Group(), 3.5, 70);
   const localZ = 0;
   group.position.set(FREEZER_X, 0, z);
 
