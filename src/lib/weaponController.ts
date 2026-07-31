@@ -36,6 +36,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
   let nearbyWeapon: WeaponKind | null = null;
   let reloading = false;
   let reloadTimer: number | undefined;
+  let fireTimer: number | undefined;
   let nextShotAt = 0;
 
   const state = (weapon: WeaponKind | null): WeaponHudState => ({
@@ -58,8 +59,13 @@ export function createWeaponController(options: WeaponControllerOptions) {
     if (reloadTimer !== undefined) window.clearTimeout(reloadTimer);
     reloadTimer = undefined;
   };
+  const stopFiring = () => {
+    if (fireTimer !== undefined) window.clearInterval(fireTimer);
+    fireTimer = undefined;
+  };
 
   const onWeaponChange = (weapon: WeaponKind | null) => {
+    stopFiring();
     stopReload();
     setWeaponAiming(camera, false);
     showHeldWeapon();
@@ -69,7 +75,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     nearbyWeapon = weapon;
     showCurrent();
   };
-  const shoot = () => {
+  const shootOnce = (playSound: boolean) => {
     if (activeSlot === null) return;
     const weapon = options.getWeapon();
     const now = performance.now();
@@ -79,7 +85,8 @@ export function createWeaponController(options: WeaponControllerOptions) {
       stopReload();
     }
     if (ammo[weapon] === 0) {
-      sounds.empty();
+      if (playSound) sounds.empty();
+      stopFiring();
       return;
     }
     ammo[weapon] -= 1;
@@ -91,8 +98,21 @@ export function createWeaponController(options: WeaponControllerOptions) {
         customers.hitCustomer(hit.object, now);
       }
     });
-    sounds.fire(weapon);
+    if (playSound) sounds.fire(weapon);
     showCurrent();
+  };
+  const shoot = (pressed: boolean) => {
+    if (!pressed) {
+      stopFiring();
+      return;
+    }
+    const weapon = options.getWeapon();
+    shootOnce(true);
+    if (weapon !== 'flamethrower' || fireTimer !== undefined) return;
+    fireTimer = window.setInterval(
+      () => shootOnce(false),
+      WEAPON_CONFIG.flamethrower.shotDelayMs,
+    );
   };
   const loadShell = () => {
     reloadTimer = undefined;
@@ -115,6 +135,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
       || ammo[weapon] === WEAPON_CONFIG[weapon].capacity
       || reloading
     ) return;
+    stopFiring();
     setWeaponAiming(camera, false);
     reloading = true;
     setWeaponReloading(camera, true);
@@ -139,6 +160,7 @@ export function createWeaponController(options: WeaponControllerOptions) {
     options.selectWeaponSlot(slot);
   };
   const reset = () => {
+    stopFiring();
     stopReload();
     setWeaponAiming(camera, false);
     ammo.shotgun = WEAPON_CONFIG.shotgun.capacity;
@@ -160,6 +182,9 @@ export function createWeaponController(options: WeaponControllerOptions) {
     aim,
     selectSlot,
     reset,
-    dispose: stopReload,
+    dispose: () => {
+      stopFiring();
+      stopReload();
+    },
   };
 }

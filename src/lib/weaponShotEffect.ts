@@ -92,6 +92,10 @@ export function updateShotEffects(scene: THREE.Scene, delta: number) {
         part.position.addScaledVector(part.userData.velocity as THREE.Vector3, delta);
         part.scale.multiplyScalar(1 + delta * 2.4);
       }
+      if (part.name === 'flame-stream') {
+        part.position.addScaledVector(part.userData.velocity as THREE.Vector3, delta);
+        part.scale.multiplyScalar(1 + delta * 1.6);
+      }
     });
     if (object.userData.life <= 0) expired.push(object);
   });

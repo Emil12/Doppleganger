@@ -20,7 +20,7 @@ type SessionInputOptions = {
   onUseMedkit: () => void;
   onSelectSlot: (slot: WeaponSlot) => void;
   onAim: (aiming: boolean) => void;
-  onShoot: () => void;
+  onShoot: (pressed: boolean) => void;
   onStart: () => void;
 };
 
@@ -82,7 +82,7 @@ export function attachGameSessionInput({
       } else if (event.button === 2) {
         onAim(true);
       } else if (event.button === 0) {
-        onShoot();
+        onShoot(true);
       }
       return;
     }
@@ -91,11 +91,15 @@ export function attachGameSessionInput({
   };
   const pointerUp = (event: PointerEvent) => {
     if (event.pointerType === 'mouse' && event.button === 2) onAim(false);
+    if (event.pointerType === 'mouse' && event.button === 0) onShoot(false);
     dragging = false;
   };
   const contextMenu = (event: MouseEvent) => event.preventDefault();
   const pointerLockChange = () => {
-    if (document.pointerLockElement !== canvas) onAim(false);
+    if (document.pointerLockElement !== canvas) {
+      onAim(false);
+      onShoot(false);
+    }
   };
 
   window.addEventListener('keydown', keyDown);

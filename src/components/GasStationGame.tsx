@@ -685,7 +685,9 @@ export function GasStationGame() {
       onAim: (aiming) => {
         actions.aim(playingRef.current && aiming);
       },
-      onShoot: () => { if (playingRef.current) actions.shoot(); },
+      onShoot: (shooting) => {
+        actions.shoot(playingRef.current && shooting);
+      },
       onStart: startGame,
     });
     resetWorldRef.current = () => {

@@ -40,15 +40,16 @@ export function fireWeapon(
   const impacts: ShotImpact[] = [];
   const forward = shotDirection(camera);
   const start = camera.position.clone().addScaledVector(forward, 0.82);
+  const shotDistance = kind === 'flamethrower' ? 6 : MAX_SHOT_DISTANCE;
   for (let pellet = 0; pellet < config.projectiles; pellet += 1) {
     const angle = pellet * 2.399;
     const radius = pellet === 0 ? 0 : config.spread * (0.5 + (pellet % 3) * 0.25);
     const direction = shotDirection(camera, Math.cos(angle) * radius, Math.sin(angle) * radius);
-    const hit = new THREE.Raycaster(camera.position, direction, 0.7, MAX_SHOT_DISTANCE)
+    const hit = new THREE.Raycaster(camera.position, direction, 0.7, shotDistance)
       .intersectObjects(shotTargets(scene, camera), true)[0];
     if (hit) hits.push(hit);
     impacts.push({
-      point: hit?.point ?? camera.position.clone().addScaledVector(direction, MAX_SHOT_DISTANCE),
+      point: hit?.point ?? camera.position.clone().addScaledVector(direction, shotDistance),
       hit: Boolean(hit),
     });
   }
