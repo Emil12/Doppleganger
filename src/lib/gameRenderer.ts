@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+const MAX_RENDER_WIDTH = 1800;
+
 export function createGameRenderer(
   canvas: HTMLCanvasElement,
   scene: THREE.Scene,
@@ -7,7 +9,7 @@ export function createGameRenderer(
 ) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: window.devicePixelRatio <= 1.5,
+    antialias: false,
     precision: 'mediump',
     powerPreference: 'high-performance',
   });
@@ -15,7 +17,7 @@ export function createGameRenderer(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.08;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   let shadowFrame = 0;
@@ -27,14 +29,18 @@ export function createGameRenderer(
       if (width === renderWidth && height === renderHeight) return;
       renderWidth = width;
       renderHeight = height;
-      const pixelRatio = Math.min(window.devicePixelRatio, 1.25);
+      const pixelRatio = Math.min(
+        window.devicePixelRatio,
+        1,
+        MAX_RENDER_WIDTH / Math.max(width, 1),
+      );
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     },
     render() {
-      shadowFrame = (shadowFrame + 1) % 12;
+      shadowFrame = (shadowFrame + 1) % 20;
       if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
       renderer.render(scene, camera);
     },

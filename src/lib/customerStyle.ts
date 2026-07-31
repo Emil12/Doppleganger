@@ -48,7 +48,5 @@ export function customerMesh(
   emissive = 0,
 ) {
   const mesh = new THREE.Mesh(geometry, customerMaterial(color, roughness, emissive));
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
   return mesh;
 }

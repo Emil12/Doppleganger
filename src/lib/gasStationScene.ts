@@ -135,7 +135,7 @@ export function buildGasStationScene() {
   const light = new THREE.DirectionalLight(0xb8d4d0, 1.1);
   light.position.set(-12, 18, 9);
   light.castShadow = true;
-  light.shadow.mapSize.set(1024, 1024);
+  light.shadow.mapSize.set(512, 512);
   light.shadow.camera.left = -24;
   light.shadow.camera.right = 24;
   light.shadow.camera.top = 24;

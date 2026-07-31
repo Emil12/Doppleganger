@@ -2,8 +2,8 @@ import * as THREE from 'three';
 
 function createWoodTexture() {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 128;
+  canvas.width = 128;
+  canvas.height = 32;
   const context = canvas.getContext('2d');
   if (!context) return null;
   const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
@@ -12,7 +12,7 @@ function createWoodTexture() {
   gradient.addColorStop(1, '#562714');
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
-  for (let line = 0; line < 34; line += 1) {
+  for (let line = 0; line < 9; line += 1) {
     context.beginPath();
     const baseY = 4 + line * 3.7;
     for (let x = 0; x <= canvas.width; x += 8) {
@@ -33,12 +33,10 @@ function createWoodTexture() {
   return texture;
 }
 
-export const bluedSteel = new THREE.MeshPhysicalMaterial({
+export const bluedSteel = new THREE.MeshStandardMaterial({
   color: 0x11191c,
   metalness: 0.98,
   roughness: 0.17,
-  clearcoat: 0.32,
-  clearcoatRoughness: 0.15,
 });
 
 export const darkSteel = new THREE.MeshStandardMaterial({
@@ -47,19 +45,16 @@ export const darkSteel = new THREE.MeshStandardMaterial({
   roughness: 0.27,
 });
 
-export const boltSteel = new THREE.MeshPhysicalMaterial({
+export const boltSteel = new THREE.MeshStandardMaterial({
   color: 0x8d9693,
   metalness: 1,
   roughness: 0.13,
-  clearcoat: 0.2,
 });
 
-export const walnut = new THREE.MeshPhysicalMaterial({
+export const walnut = new THREE.MeshStandardMaterial({
   color: 0xffffff,
   map: createWoodTexture(),
   roughness: 0.3,
-  clearcoat: 0.72,
-  clearcoatRoughness: 0.19,
 });
 
 export const brass = new THREE.MeshStandardMaterial({

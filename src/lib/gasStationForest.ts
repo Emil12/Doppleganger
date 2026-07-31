@@ -40,8 +40,6 @@ function createInstances(
   count: number,
 ) {
   const instances = new THREE.InstancedMesh(geometry, material, count);
-  instances.castShadow = true;
-  instances.receiveShadow = true;
   return instances;
 }
 

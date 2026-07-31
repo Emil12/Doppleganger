@@ -37,7 +37,7 @@ function addCeilingLight(
   light.position.set(position[0], position[1] - 0.12, position[2]);
   light.target.position.set(position[0], 0, position[2]);
   light.castShadow = castsShadow;
-  light.shadow.mapSize.set(512, 512);
+  light.shadow.mapSize.set(256, 256);
   light.shadow.bias = -0.001;
   light.shadow.normalBias = 0.025;
   scene.add(light, light.target);
