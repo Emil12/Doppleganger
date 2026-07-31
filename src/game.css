@@ -1,83 +1,28 @@
 .game-page {
-  width: min(100% - 28px, 960px);
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 24px 0;
-  display: grid;
-  align-content: center;
-  gap: 14px;
-}
-
-.game-header,
-.game-footer {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.eyebrow,
-.game-footer {
-  color: #929c95;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-}
-
-h1 {
-  color: #eee6c7;
-  font-family: "Courier New", monospace;
-  font-size: clamp(28px, 6vw, 48px);
-  line-height: 0.95;
-  letter-spacing: -0.06em;
-  text-shadow: 0 0 28px rgba(131, 185, 145, 0.25);
-}
-
-.quality-badge {
-  padding: 7px 11px;
-  border: 1px solid rgba(145, 204, 155, 0.35);
-  border-radius: 999px;
-  color: #b8dabc;
-  background: rgba(75, 119, 84, 0.14);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.account-link {
-  padding: 7px 11px;
-  border-radius: 999px;
-  color: #e5dfc7;
-  background: #385e42;
-  text-decoration: none;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #050806;
 }
 
 .game-shell,
 .screen-frame {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .screen-frame {
   overflow: hidden;
-  border: 1px solid rgba(191, 211, 192, 0.22);
-  border-radius: 16px;
   background: #202320;
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.62),
-    0 0 0 5px rgba(6, 9, 7, 0.65);
 }
 
-canvas {
+.screen-frame > canvas {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   image-rendering: auto;
   cursor: crosshair;
   touch-action: none;
@@ -102,6 +47,11 @@ canvas {
 }
 
 @media (pointer: coarse), (max-width: 620px) {
-  .game-page { align-content: start; }
-  .game-footer span:first-child { display: none; }
+  .game-controls {
+    position: absolute;
+    z-index: 30;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    margin: 0;
+  }
 }
