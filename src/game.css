@@ -45,13 +45,3 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-
-@media (pointer: coarse), (max-width: 620px) {
-  .game-controls {
-    position: absolute;
-    z-index: 30;
-    right: max(16px, env(safe-area-inset-right));
-    bottom: max(16px, env(safe-area-inset-bottom));
-    margin: 0;
-  }
-}

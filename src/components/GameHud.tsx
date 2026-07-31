@@ -3,6 +3,8 @@ import { GameClock } from './GameClock';
 import { type CheckoutKind } from '../lib/customerSystem';
 import { type WeaponKind, type WeaponSlot, WEAPON_CONFIG } from '../lib/gameWeapon';
 import { type DoorLabel } from '../lib/staffDoor';
+import { type RadioSelection } from '../lib/counterRadioAudio';
+import { RadioNowPlaying } from './RadioNowPlaying';
 
 type GameHudProps = {
   hidden: boolean;
@@ -24,6 +26,8 @@ type GameHudProps = {
   nearDoor: boolean;
   nearMess: boolean;
   nearMedkit: boolean;
+  nearRadio: boolean;
+  radioSelection: RadioSelection | null;
   checkoutKind: CheckoutKind | null;
   doorOpen: boolean;
   doorLabel: DoorLabel;
@@ -49,6 +53,8 @@ export function GameHud({
   nearDoor,
   nearMess,
   nearMedkit,
+  nearRadio,
+  radioSelection,
   checkoutKind,
   doorOpen,
   doorLabel,
@@ -80,6 +86,7 @@ export function GameHud({
       </div>
       {hidden && <p className="hidden-indicator">HIDDEN · STAY QUIET</p>}
       <GameClock playing={playing} shiftNumber={shiftNumber} onShiftEnd={onShiftEnd} />
+      {radioSelection && <RadioNowPlaying selection={radioSelection} />}
       <div
         className="health-meter"
         role="progressbar"
@@ -115,11 +122,16 @@ export function GameHud({
           <strong>× {medkits}</strong>
         </div>
       )}
-      {nearMess && <p className="pickup-prompt pickup-prompt--danger">E · CLEAN THE MESS</p>}
-      {!nearMess && nearMedkit && (
+      {nearRadio && (
+        <p className="pickup-prompt pickup-prompt--radio">E · NEXT MEME TAPE</p>
+      )}
+      {!nearRadio && nearMess && (
+        <p className="pickup-prompt pickup-prompt--danger">E · CLEAN THE MESS</p>
+      )}
+      {!nearRadio && !nearMess && nearMedkit && (
         <p className="pickup-prompt pickup-prompt--healing">E · USE MEDKIT</p>
       )}
-      {!nearMess && !nearMedkit && checkoutKind && (
+      {!nearRadio && !nearMess && !nearMedkit && checkoutKind && (
         <p className={`pickup-prompt ${
           checkoutKind === 'anomaly' ? 'pickup-prompt--anomaly' : 'pickup-prompt--payment'
         }`}>
@@ -128,10 +140,10 @@ export function GameHud({
             : 'ID SHOWN · E ACCEPT · F REFUSE'}
         </p>
       )}
-      {!nearMess && !nearMedkit && !checkoutKind && nearDoor && (
+      {!nearRadio && !nearMess && !nearMedkit && !checkoutKind && nearDoor && (
         <p className="pickup-prompt">E · {doorOpen ? 'CLOSE' : 'OPEN'} {doorLabel}</p>
       )}
-      {!nearMess && !nearMedkit && !checkoutKind && !nearDoor && nearbyWeapon && (
+      {!nearRadio && !nearMess && !nearMedkit && !checkoutKind && !nearDoor && nearbyWeapon && (
         <p className="pickup-prompt">
           {weapon ? `E · PUT BACK ${weaponLabel}` : `E · PICK UP ${nearbyWeaponLabel}`}
         </p>

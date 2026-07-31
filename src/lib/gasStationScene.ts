@@ -13,6 +13,7 @@ import { addDetailedModels } from './gasStationModels';
 import { addPolygonDetails } from './gasStationPolygons';
 import { PixelTexture, pixelMaterial } from './pixelTextures';
 import { addWallMedkit } from './wallMedkit';
+import { addCounterRadio } from './counterRadioModel';
 
 type Size = [number, number, number];
 type Position = [number, number, number];
@@ -159,6 +160,7 @@ export function buildGasStationScene() {
   addPolygonDetails(scene);
   addStationLighting(scene);
   addWallMedkit(scene);
+  addCounterRadio(scene);
   addAtmosphere(scene);
   return scene;
 }

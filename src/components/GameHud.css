@@ -240,6 +240,12 @@
   color: #b9edc2;
 }
 
+.pickup-prompt--radio {
+  border-color: rgba(229, 165, 76, 0.76);
+  color: #f2c46c;
+  box-shadow: 0 0 16px rgba(190, 105, 48, 0.18);
+}
+
 .pickup-prompt--anomaly {
   border-color: rgba(218, 51, 61, 0.82);
   color: #ff8a8f;
@@ -270,4 +276,57 @@
 .weapon-hud--empty strong,
 .weapon-hud--empty small {
   color: #b75b4c;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .shift-badge {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    left: auto;
+  }
+
+  .judgement-points {
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 42px);
+    right: max(10px, env(safe-area-inset-right, 0px));
+    left: auto;
+  }
+
+  .health-meter,
+  .sprint-meter {
+    bottom: auto;
+    left: max(10px, env(safe-area-inset-left, 0px));
+    width: min(210px, 48vw);
+    padding: 7px 9px;
+  }
+
+  .health-meter {
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 49px);
+  }
+
+  .sprint-meter {
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 91px);
+  }
+
+  .portable-medkit {
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 122px);
+  }
+
+  .weapon-hud {
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 154px);
+  }
+
+  .pickup-prompt {
+    bottom: 30%;
+    max-width: 52vw;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judgement-points--empty,
+  .sprint-meter--exhausted {
+    animation: none;
+  }
 }

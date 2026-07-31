@@ -1,0 +1,82 @@
+.radio-now-playing {
+  position: absolute;
+  z-index: 8;
+  top: 14px;
+  left: 50%;
+  min-width: min(390px, 64vw);
+  padding: 8px 11px;
+  border: 1px solid rgba(226, 170, 83, 0.55);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  color: #eadfb9;
+  background: rgba(22, 19, 15, 0.86);
+  box-shadow: 0 0 18px rgba(190, 107, 47, 0.12);
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.09em;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.radio-now-playing small,
+.radio-now-playing strong {
+  display: block;
+}
+
+.radio-now-playing small {
+  margin-bottom: 3px;
+  color: #af9b72;
+  font-size: 7px;
+}
+
+.radio-now-playing strong {
+  color: #f2c56e;
+  font-size: 10px;
+}
+
+.radio-now-playing b {
+  color: #79aaa0;
+  font-size: 12px;
+}
+
+.radio-now-playing em {
+  padding: 0 2px;
+  color: #695f4c;
+  font-style: normal;
+}
+
+.radio-now-playing__signal {
+  height: 18px;
+  display: flex;
+  gap: 2px;
+  align-items: end;
+}
+
+.radio-now-playing__signal i {
+  width: 3px;
+  background: #bc724e;
+  animation: radio-level 620ms steps(3) infinite alternate;
+}
+
+.radio-now-playing__signal i:nth-child(1) { height: 42%; }
+.radio-now-playing__signal i:nth-child(2) { height: 100%; animation-delay: -250ms; }
+.radio-now-playing__signal i:nth-child(3) { height: 68%; animation-delay: -420ms; }
+.radio-now-playing__signal i:nth-child(4) { height: 84%; animation-delay: -130ms; }
+
+@keyframes radio-level {
+  to { height: 25%; }
+}
+
+@media (max-width: 620px) {
+  .radio-now-playing {
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 134px);
+    min-width: min(340px, 76vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio-now-playing__signal i {
+    animation: none;
+  }
+}

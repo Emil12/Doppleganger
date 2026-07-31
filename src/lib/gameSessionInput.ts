@@ -41,7 +41,7 @@ export function attachGameSessionInput({
   onShoot,
   onStart,
 }: SessionInputOptions) {
-  let dragging = false;
+  let touchPointerId: number | null = null;
   let lastPointer = { x: 0, y: 0 };
 
   const key = (event: KeyboardEvent, pressed: boolean) => {
@@ -68,7 +68,7 @@ export function attachGameSessionInput({
     look.current.pitch -= event.movementY * 0.002 * sensitivity;
   };
   const pointerMove = (event: PointerEvent) => {
-    if (!dragging || event.pointerType === 'mouse') return;
+    if (event.pointerId !== touchPointerId || event.pointerType === 'mouse') return;
     const sensitivity = getSensitivity();
     look.current.yaw -= (event.clientX - lastPointer.x) * 0.006 * sensitivity;
     look.current.pitch -= (event.clientY - lastPointer.y) * 0.005 * sensitivity;
@@ -86,13 +86,14 @@ export function attachGameSessionInput({
       }
       return;
     }
-    dragging = true;
+    if (touchPointerId !== null) return;
+    touchPointerId = event.pointerId;
     lastPointer = { x: event.clientX, y: event.clientY };
   };
   const pointerUp = (event: PointerEvent) => {
     if (event.pointerType === 'mouse' && event.button === 2) onAim(false);
     if (event.pointerType === 'mouse' && event.button === 0) onShoot(false);
-    dragging = false;
+    if (event.pointerId === touchPointerId) touchPointerId = null;
   };
   const contextMenu = (event: MouseEvent) => event.preventDefault();
   const pointerLockChange = () => {
@@ -110,6 +111,7 @@ export function attachGameSessionInput({
   canvas.addEventListener('contextmenu', contextMenu);
   document.addEventListener('pointerlockchange', pointerLockChange);
   window.addEventListener('pointerup', pointerUp);
+  window.addEventListener('pointercancel', pointerUp);
 
   return () => {
     window.removeEventListener('keydown', keyDown);
@@ -120,5 +122,6 @@ export function attachGameSessionInput({
     canvas.removeEventListener('contextmenu', contextMenu);
     document.removeEventListener('pointerlockchange', pointerLockChange);
     window.removeEventListener('pointerup', pointerUp);
+    window.removeEventListener('pointercancel', pointerUp);
   };
 }

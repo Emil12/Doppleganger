@@ -1,0 +1,128 @@
+.mobile-touch-controls {
+  --touch-safe-top: max(12px, env(safe-area-inset-top, 0px));
+  --touch-safe-right: max(16px, env(safe-area-inset-right, 0px));
+  --touch-safe-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  --touch-safe-left: max(16px, env(safe-area-inset-left, 0px));
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: none;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-touch-controls__look {
+  position: absolute;
+  z-index: 1;
+  inset: var(--touch-safe-top) 0 0 42%;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.mobile-touch-controls__look::after {
+  position: absolute;
+  top: 50%;
+  right: var(--touch-safe-right);
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  content: '';
+  opacity: 0.32;
+  background: #d6d0b8;
+  box-shadow: -8px -5px 0 -1px #d6d0b8, -8px 5px 0 -1px #d6d0b8;
+}
+
+.mobile-touch-controls__joystick {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--touch-safe-bottom);
+  left: var(--touch-safe-left);
+  width: clamp(116px, 22vw, 148px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(214, 208, 184, 0.28);
+  border-radius: 50%;
+  pointer-events: auto;
+  touch-action: none;
+  background: rgba(13, 18, 16, 0.36);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(2px);
+}
+
+.mobile-touch-controls__joystick::before {
+  position: absolute;
+  inset: 28%;
+  border: 1px solid rgba(214, 208, 184, 0.14);
+  border-radius: 50%;
+  content: '';
+}
+
+.mobile-touch-controls__stick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 42%;
+  aspect-ratio: 1;
+  margin: -21%;
+  border: 1px solid rgba(233, 226, 199, 0.58);
+  border-radius: 50%;
+  background: rgba(54, 63, 58, 0.86);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.36);
+  will-change: transform;
+}
+
+.mobile-touch-controls__joystick[data-active='true'] .mobile-touch-controls__stick {
+  background: rgba(69, 82, 75, 0.94);
+}
+
+.mobile-touch-controls__shoot {
+  position: absolute;
+  z-index: 2;
+  right: var(--touch-safe-right);
+  bottom: calc(var(--touch-safe-bottom) + 14px);
+  width: clamp(72px, 14vw, 92px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(224, 190, 168, 0.56);
+  border-radius: 50%;
+  color: #f0ded2;
+  pointer-events: auto;
+  touch-action: none;
+  background: rgba(91, 45, 38, 0.78);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.38);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.mobile-touch-controls__shoot[data-active='true'] {
+  transform: scale(0.94);
+  background: rgba(126, 53, 43, 0.92);
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.42);
+}
+
+.mobile-touch-controls[aria-disabled='true'] {
+  opacity: 0.42;
+}
+
+.mobile-touch-controls[aria-disabled='true'] > * {
+  pointer-events: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .mobile-touch-controls {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .mobile-touch-controls__joystick,
+  .mobile-touch-controls__shoot {
+    backdrop-filter: none;
+  }
+}

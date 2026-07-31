@@ -21,6 +21,8 @@ import { buildGasStationScene } from '../lib/gasStationScene';
 import { isHiddenInRestroom } from '../lib/gasStationRestroom';
 import { updateAtmosphere } from '../lib/gasStationAtmosphere';
 import { createFootstepAudio } from '../lib/footstepAudio';
+import { createCounterRadioSystem } from '../lib/counterRadioSystem';
+import { type RadioSelection } from '../lib/counterRadioAudio';
 import { createCustomerSystem, type CheckoutKind } from '../lib/customerSystem';
 import { type QueueDialogue as QueueDialogueState } from '../lib/customerDialogue';
 import { createDaylightCycle } from '../lib/daylightCycle';
@@ -60,18 +62,27 @@ import {
   staffDoorBlocks,
   updateStaffDoors,
 } from '../lib/staffDoor';
-import { GameControls } from './GameControls';
 import { AccountRequired } from './AccountRequired';
 import { DeathScreen } from './DeathScreen';
 import { GameHud } from './GameHud';
 import { InspectorExecution } from './InspectorExecution';
 import { Jumpscare, type JumpscareKind } from './Jumpscare';
 import { MainMenu } from './MainMenu';
+import { MobileTouchControls } from './MobileTouchControls';
 import { NightmareOverlay } from './NightmareOverlay';
 import { QueueDialogue } from './QueueDialogue';
 import { ShiftSummary } from './ShiftSummary';
 
 const MAX_JUDGEMENT_POINTS = 5;
+const ANOMALY_HIT_DAMAGE = 40;
+
+function requestDesktopPointerLock(canvas: HTMLCanvasElement | null) {
+  if (
+    !canvas
+    || !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  ) return;
+  void canvas.requestPointerLock();
+}
 
 export function GasStationGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -112,6 +123,8 @@ export function GasStationGame() {
   const economyRef = useRef<GameEconomy>(EMPTY_GAME_ECONOMY);
   const economyBusyRef = useRef(false);
   const classMedkitsRef = useRef(0);
+  const actionsRef = useRef<ReturnType<typeof createGameActions> | null>(null);
+  const radioSystemRef = useRef<ReturnType<typeof createCounterRadioSystem> | null>(null);
   const equipClassWeaponsRef = useRef<
     ((kinds: readonly [WeaponKind, WeaponKind?]) => void) | null
   >(null);
@@ -126,6 +139,8 @@ export function GasStationGame() {
   const [door, setDoor] = useState(INITIAL_DOOR_STATE);
   const [nearMess, setNearMess] = useState(false);
   const [nearMedkit, setNearMedkit] = useState(false);
+  const [nearRadio, setNearRadio] = useState(false);
+  const [radioSelection, setRadioSelection] = useState<RadioSelection | null>(null);
   const [checkoutKind, setCheckoutKind] = useState<CheckoutKind | null>(null);
   const [health, setHealth] = useState(100);
   const [maxHealth, setMaxHealth] = useState(100);
@@ -274,7 +289,7 @@ export function GasStationGame() {
     menuOpenRef.current = false;
     setMenuOpen(false);
     startGame();
-    if (canvasRef.current) void canvasRef.current.requestPointerLock();
+    requestDesktopPointerLock(canvasRef.current);
   }, [startGame]);
 
   const updateSettings = useCallback((nextSettings: GameSettings) => {
@@ -419,7 +434,7 @@ export function GasStationGame() {
     daylightCycleRef.current?.start(Date.now());
     playingRef.current = true;
     setPlaying(true);
-    if (canvasRef.current) void canvasRef.current.requestPointerLock();
+    requestDesktopPointerLock(canvasRef.current);
   }, []);
 
   const returnToMenu = useCallback(() => {
@@ -485,7 +500,7 @@ export function GasStationGame() {
     daylightCycleRef.current?.start(Date.now());
     playingRef.current = true;
     setPlaying(true);
-    if (canvasRef.current) void canvasRef.current.requestPointerLock();
+    requestDesktopPointerLock(canvasRef.current);
   }, [prepareClassLoadout, stopInspectorExecution]);
 
   useEffect(() => {
@@ -584,10 +599,7 @@ export function GasStationGame() {
           beginInspectorExecution();
           return;
         }
-        const damage = Math.min(
-          15 * difficultyMultiplier(settingsRef.current, shiftNumberRef.current),
-          healthRef.current,
-        );
+        const damage = Math.min(ANOMALY_HIT_DAMAGE, healthRef.current);
         runStatsRef.current.damageTaken += damage;
         healthRef.current -= damage;
         setHealth(healthRef.current);
@@ -629,6 +641,12 @@ export function GasStationGame() {
       ),
     });
     const daylight = createDaylightCycle(scene);
+    const radio = createCounterRadioSystem({
+      scene,
+      camera,
+      showNearby: setNearRadio,
+      showSelection: setRadioSelection,
+    });
     footstepAudioRef.current = footsteps;
     weaponAudioRef.current = weaponAudio;
     const audioWarmupTimers = [
@@ -638,6 +656,7 @@ export function GasStationGame() {
     ];
     customerSystemRef.current = customers;
     daylightCycleRef.current = daylight;
+    radioSystemRef.current = radio;
     let lastStaminaUpdate = 0;
 
     const resize = () => {
@@ -672,6 +691,7 @@ export function GasStationGame() {
       },
       queueJumpscare,
     );
+    actionsRef.current = actions;
     equipClassWeaponsRef.current = actions.equipWeapons;
     const detachInput = attachGameSessionInput({
       canvas,
@@ -687,7 +707,10 @@ export function GasStationGame() {
       onCrouch: () => {
         if (playingRef.current) crouchedRef.current = !crouchedRef.current;
       },
-      onInteract: () => { if (playingRef.current) actions.interact(); },
+      onInteract: () => {
+        if (!playingRef.current) return;
+        if (!radio.interact()) actions.interact();
+      },
       onRefuse: () => { if (playingRef.current) actions.refuse(); },
       onReload: () => { if (playingRef.current) actions.reload(); },
       onUseMedkit: usePortableMedkit,
@@ -712,6 +735,7 @@ export function GasStationGame() {
       crouch.amount = 0;
       crouchedRef.current = false;
       actions.reset();
+      radio.reset();
     };
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
@@ -784,6 +808,7 @@ export function GasStationGame() {
       }
       if (time >= nextProximityUpdateAt) {
         actions.updateProximity();
+        radio.update();
         nextProximityUpdateAt = time + 50;
       }
       playerAvatar.renderMirror((mirrorCamera, target) => {
@@ -807,10 +832,12 @@ export function GasStationGame() {
       footsteps.dispose();
       weaponAudio.dispose();
       customers.dispose();
+      radio.dispose();
       if (footstepAudioRef.current === footsteps) footstepAudioRef.current = null;
       if (weaponAudioRef.current === weaponAudio) weaponAudioRef.current = null;
       if (customerSystemRef.current === customers) customerSystemRef.current = null;
       if (daylightCycleRef.current === daylight) daylightCycleRef.current = null;
+      if (radioSystemRef.current === radio) radioSystemRef.current = null;
       if (jumpscareTimerRef.current !== null) window.clearTimeout(jumpscareTimerRef.current);
       if (jumpscareHideTimerRef.current !== null) {
         window.clearTimeout(jumpscareHideTimerRef.current);
@@ -821,6 +848,7 @@ export function GasStationGame() {
       if (dialogueTimerRef.current !== null) window.clearTimeout(dialogueTimerRef.current);
       resetWorldRef.current = null;
       equipClassWeaponsRef.current = null;
+      if (actionsRef.current === actions) actionsRef.current = null;
       renderer.dispose();
     };
   }, [
@@ -856,6 +884,8 @@ export function GasStationGame() {
           nearDoor={door.near}
           nearMess={nearMess}
           nearMedkit={nearMedkit}
+          nearRadio={nearRadio}
+          radioSelection={radioSelection}
           checkoutKind={checkoutKind}
           doorOpen={door.open}
           doorLabel={door.label}
@@ -894,16 +924,27 @@ export function GasStationGame() {
         />
       )}
       {!economyBusy && !economy.signedIn && trialRemainingMs <= 0 && <AccountRequired />}
-      <GameControls
-        onStart={startGame}
-        onControl={setControl}
-        onJump={() => {
-          if (playingRef.current) jumpRequestedRef.current = true;
-        }}
-        onSprint={(pressed) => {
-          if (playingRef.current) sprintRef.current = pressed;
-        }}
-      />
+      {playing && !inspectorExecuting && !shiftSummary && !deathSummary && (
+        <MobileTouchControls
+          onStart={startGame}
+          onMove={({ x, y }) => {
+            const deadZone = 0.22;
+            setControl('up', y < -deadZone);
+            setControl('down', y > deadZone);
+            setControl('left', x < -deadZone);
+            setControl('right', x > deadZone);
+          }}
+          onLook={({ x, y }) => {
+            if (!playingRef.current || inspectorExecutingRef.current) return;
+            const sensitivity = settingsRef.current.sensitivity;
+            lookRef.current.yaw -= x * 0.006 * sensitivity;
+            lookRef.current.pitch -= y * 0.005 * sensitivity;
+          }}
+          onShoot={(pressed) => {
+            actionsRef.current?.shoot(playingRef.current && pressed);
+          }}
+        />
+      )}
     </section>
   );
 }

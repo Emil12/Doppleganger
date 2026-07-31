@@ -29,3 +29,13 @@
   font-size: clamp(10px, 1.7vw, 14px);
   letter-spacing: 0.06em;
 }
+
+@media (hover: none) and (pointer: coarse) {
+  .game-clock {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    bottom: auto;
+    left: max(10px, env(safe-area-inset-left, 0px));
+    width: min(210px, 48vw);
+    padding: 6px 9px;
+  }
+}
