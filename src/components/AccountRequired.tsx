@@ -6,7 +6,7 @@ export function AccountRequired() {
     <section className="account-required" role="dialog" aria-modal="true">
       <div className="account-required__panel">
         <p>FREE ACCESS COMPLETE</p>
-        <h2>YOUR 35-HOUR TRIAL HAS ENDED</h2>
+        <h2>YOUR 50-HOUR TRIAL HAS ENDED</h2>
         <span>
           Create an account or sign in to continue your night shifts.
         </span>

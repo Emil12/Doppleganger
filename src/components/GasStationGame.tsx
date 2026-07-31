@@ -52,6 +52,7 @@ import {
   type PlayerClassKind,
 } from '../lib/playerClasses';
 import {
+  applyFreePlayHours,
   loadFreePlayRemainingMs,
   saveFreePlayRemainingMs,
 } from '../lib/freePlayTrial';
@@ -145,6 +146,9 @@ export function GasStationGame() {
   const trialRemainingRef = useRef(trialRemainingMs);
 
   const applyEconomy = useCallback((nextEconomy: GameEconomy) => {
+    const remaining = applyFreePlayHours(nextEconomy.freePlayHours);
+    trialRemainingRef.current = remaining;
+    setTrialRemainingMs(remaining);
     economyRef.current = nextEconomy;
     setEconomy(nextEconomy);
   }, []);
@@ -878,7 +882,9 @@ export function GasStationGame() {
           onBuyClass={(playerClass) => { void purchaseClass(playerClass); }}
           onSelectClass={(playerClass) => { void chooseClass(playerClass); }}
           onStart={startFromMenu}
-          freePlayRemainingMs={economy.signedIn ? null : trialRemainingMs}
+          freePlayRemainingMs={
+            economy.signedIn && economy.freePlayHours <= 50 ? null : trialRemainingMs
+          }
         />
       )}
       {!economyBusy && !economy.signedIn && trialRemainingMs <= 0 && <AccountRequired />}

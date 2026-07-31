@@ -10,6 +10,7 @@ export type GameEconomy = {
   signedIn: boolean;
   selectedClass: PlayerClassKind;
   ownedClasses: PlayerClassKind[];
+  freePlayHours: number;
 };
 
 type EconomyRow = {
@@ -17,6 +18,7 @@ type EconomyRow = {
   medkits: number;
   selected_class: unknown;
   owned_classes: unknown;
+  free_play_hours: number;
 };
 
 export const EMPTY_GAME_ECONOMY: GameEconomy = {
@@ -25,6 +27,7 @@ export const EMPTY_GAME_ECONOMY: GameEconomy = {
   signedIn: false,
   selectedClass: 'attendant',
   ownedClasses: ['attendant'],
+  freePlayHours: 50,
 };
 
 function economyFromRow(row: EconomyRow): GameEconomy {
@@ -40,6 +43,7 @@ function economyFromRow(row: EconomyRow): GameEconomy {
     signedIn: true,
     selectedClass,
     ownedClasses,
+    freePlayHours: Number.isFinite(row.free_play_hours) ? row.free_play_hours : 50,
   };
 }
 
@@ -53,7 +57,7 @@ export async function loadGameEconomy(): Promise<GameEconomy> {
     .upsert({ user_id: userData.user.id }, { onConflict: 'user_id', ignoreDuplicates: true });
   const { data, error } = await supabase
     .from('game_profiles')
-    .select('coins, medkits, selected_class, owned_classes')
+    .select('coins, medkits, selected_class, owned_classes, free_play_hours')
     .eq('user_id', userData.user.id)
     .single();
   if (error || !data) return { ...EMPTY_GAME_ECONOMY, signedIn: true };
