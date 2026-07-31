@@ -126,9 +126,6 @@ export function createAnomalyFeatures(kind: AnomalyKind) {
   addClawsAndWounds(features);
   addHorrorGrowths(features);
   features.add(createVariantFeatures(kind));
-  const glow = new THREE.PointLight(0xb30b16, 2.2, 3.5, 2);
-  glow.position.set(0, 1.55, -0.45);
-  features.add(glow);
   return features;
 }
 

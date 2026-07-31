@@ -31,12 +31,27 @@ const doors: Array<{ name: string; anchor: string; label: DoorLabel; openAngle: 
   },
 ];
 
+const sceneObjects = new WeakMap<THREE.Scene, Map<string, THREE.Object3D>>();
+const worldPosition = new THREE.Vector3();
+
+function findDoorObject(scene: THREE.Scene, name: string) {
+  let objects = sceneObjects.get(scene);
+  if (!objects) {
+    objects = new Map();
+    sceneObjects.set(scene, objects);
+  }
+  const cached = objects.get(name);
+  if (cached) return cached;
+  const object = scene.getObjectByName(name);
+  if (object) objects.set(name, object);
+  return object;
+}
+
 function distanceTo(scene: THREE.Scene, camera: THREE.Camera, anchorName: string) {
-  const anchor = scene.getObjectByName(anchorName);
+  const anchor = findDoorObject(scene, anchorName);
   if (!anchor) return Number.POSITIVE_INFINITY;
-  const position = new THREE.Vector3();
-  anchor.getWorldPosition(position);
-  return position.distanceTo(camera.position);
+  anchor.getWorldPosition(worldPosition);
+  return worldPosition.distanceTo(camera.position);
 }
 
 export function nearestDoor(scene: THREE.Scene, camera: THREE.Camera) {
@@ -44,7 +59,7 @@ export function nearestDoor(scene: THREE.Scene, camera: THREE.Camera) {
     .map((config) => ({
       ...config,
       distance: distanceTo(scene, camera, config.anchor),
-      open: Boolean(scene.getObjectByName(config.name)?.userData.open),
+      open: Boolean(findDoorObject(scene, config.name)?.userData.open),
     }))
     .sort((a, b) => a.distance - b.distance)[0];
 }
@@ -52,7 +67,7 @@ export function nearestDoor(scene: THREE.Scene, camera: THREE.Camera) {
 export function toggleNearestDoor(scene: THREE.Scene, camera: THREE.Camera) {
   const nearest = nearestDoor(scene, camera);
   if (!nearest || nearest.distance >= 2) return null;
-  const hinge = scene.getObjectByName(nearest.name);
+  const hinge = findDoorObject(scene, nearest.name);
   if (!hinge) return null;
   const open = !Boolean(hinge.userData.open);
   hinge.userData.open = open;
@@ -62,7 +77,7 @@ export function toggleNearestDoor(scene: THREE.Scene, camera: THREE.Camera) {
 
 export function updateStaffDoors(scene: THREE.Scene, delta: number) {
   doors.forEach(({ name }) => {
-    const hinge = scene.getObjectByName(name);
+    const hinge = findDoorObject(scene, name);
     if (!hinge) return;
     hinge.rotation.y = THREE.MathUtils.damp(
       hinge.rotation.y,
@@ -74,7 +89,7 @@ export function updateStaffDoors(scene: THREE.Scene, delta: number) {
 }
 
 function sideDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number) {
-  if (scene.getObjectByName(STAFF_DOOR_NAME)?.userData.open) return false;
+  if (findDoorObject(scene, STAFF_DOOR_NAME)?.userData.open) return false;
   return (
     x + radius > STAFF_ROOM.left - 0.25 &&
     x - radius < STAFF_ROOM.left + 0.25 &&
@@ -84,7 +99,7 @@ function sideDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number
 }
 
 function backDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number) {
-  if (scene.getObjectByName(BACK_DOOR_NAME)?.userData.open) return false;
+  if (findDoorObject(scene, BACK_DOOR_NAME)?.userData.open) return false;
   return (
     x + radius > 10.8 &&
     x - radius < 13.2 &&
@@ -94,7 +109,7 @@ function backDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number
 }
 
 function restroomDoorBlocks(scene: THREE.Scene, x: number, z: number, radius: number) {
-  if (scene.getObjectByName(RESTROOM_DOOR_NAME)?.userData.open) return false;
+  if (findDoorObject(scene, RESTROOM_DOOR_NAME)?.userData.open) return false;
   return (
     x + radius > RESTROOM.doorLeft
     && x - radius < RESTROOM.doorRight

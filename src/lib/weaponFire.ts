@@ -136,9 +136,10 @@ function updateAimCamera(camera: THREE.PerspectiveCamera, delta: number) {
 }
 
 export function updateWeaponEffects(scene: THREE.Scene, delta: number) {
-  scene.traverse((object) => {
-    updateHeldWeapon(object, delta);
-    if (object instanceof THREE.PerspectiveCamera) updateAimCamera(object, delta);
-  });
+  for (const object of scene.children) {
+    if (!(object instanceof THREE.PerspectiveCamera)) continue;
+    updateAimCamera(object, delta);
+    object.children.forEach((child) => updateHeldWeapon(child, delta));
+  }
   updateShotEffects(scene, delta);
 }

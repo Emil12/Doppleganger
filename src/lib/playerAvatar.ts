@@ -64,7 +64,7 @@ export function createPlayerAvatarSystem(
 
   const mirror = scene.getObjectByName(RESTROOM_MIRROR_NAME) as THREE.Mesh | undefined;
   const mirrorWall = scene.getObjectByName(RESTROOM_MIRROR_WALL_NAME);
-  const renderTarget = new THREE.WebGLRenderTarget(384, 512, {
+  const renderTarget = new THREE.WebGLRenderTarget(256, 320, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
   });
@@ -102,9 +102,9 @@ export function createPlayerAvatarSystem(
   const renderMirror = (
     render: (camera: THREE.PerspectiveCamera, target: THREE.WebGLRenderTarget) => void,
   ) => {
-    if (!mirror || playerCamera.position.distanceTo(mirror.position) > 9) return;
+    if (!mirror || playerCamera.position.distanceTo(mirror.position) > 6.5) return;
     const now = performance.now();
-    if (now - lastMirrorRenderAt < 80) return;
+    if (now - lastMirrorRenderAt < 140) return;
     lastMirrorRenderAt = now;
     const mirrorX = RESTROOM.right - 0.14;
     const direction = playerCamera.getWorldDirection(new THREE.Vector3());

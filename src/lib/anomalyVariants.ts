@@ -21,9 +21,6 @@ function addScreamerFeatures(group: THREE.Group) {
     throat.position.set(0.02, 1.63, -0.405 - ring * 0.012);
     group.add(throat);
   }
-  const glow = new THREE.PointLight(0xff1628, 3.2, 4, 2);
-  glow.position.set(0, 1.65, -0.5);
-  group.add(glow);
 }
 
 function addCrierFeatures(group: THREE.Group) {

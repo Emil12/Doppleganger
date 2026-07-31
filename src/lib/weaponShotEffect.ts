@@ -85,7 +85,7 @@ function disposeEffect(effect: THREE.Object3D) {
 
 export function updateShotEffects(scene: THREE.Scene, delta: number) {
   const expired: THREE.Object3D[] = [];
-  scene.traverse((object) => {
+  scene.children.forEach((object) => {
     if (object.name !== WEAPON_EFFECT_NAME) return;
     object.userData.life = Number(object.userData.life) - delta;
     const fade = Math.max(0, Number(object.userData.life) / Number(object.userData.initialLife));

@@ -506,6 +506,9 @@ export function GasStationGame() {
     let previousTime = performance.now();
     let frame = 0;
     let wasHidden = false;
+    let nextIdleRenderAt = 0;
+    let nextEnvironmentUpdateAt = 0;
+    let nextProximityUpdateAt = 0;
     const jump = { height: 0, velocity: 0 };
     const sprint = { stamina: 100, exhausted: false };
     const crouch = { amount: 0 };
@@ -648,10 +651,14 @@ export function GasStationGame() {
       const delta = Math.min((time - previousTime) / 1000, 0.04);
       previousTime = time;
       if (!playingRef.current) {
-        renderer.render();
+        if (time >= nextIdleRenderAt) {
+          renderer.render();
+          nextIdleRenderAt = time + 200;
+        }
         frame = requestAnimationFrame(animate);
         return;
       }
+      nextIdleRenderAt = time;
       const yaw = lookRef.current.yaw;
       const previousX = camera.position.x;
       const previousZ = camera.position.z;
@@ -691,13 +698,19 @@ export function GasStationGame() {
       updateWeaponEffects(scene, delta);
       updateStaffDoors(scene, delta);
       customers.update(time, delta, camera);
-      daylight.update(Date.now());
+      if (time >= nextEnvironmentUpdateAt) {
+        daylight.update(Date.now());
+        nextEnvironmentUpdateAt = time + 100;
+      }
       const nowHidden = isHiddenInRestroom(scene, camera.position);
       if (nowHidden !== wasHidden) {
         wasHidden = nowHidden;
         setHidden(nowHidden);
       }
-      actions.updateProximity();
+      if (time >= nextProximityUpdateAt) {
+        actions.updateProximity();
+        nextProximityUpdateAt = time + 50;
+      }
       playerAvatar.renderMirror((mirrorCamera, target) => {
         renderer.renderToTarget(mirrorCamera, target);
       });

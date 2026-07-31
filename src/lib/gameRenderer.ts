@@ -7,8 +7,8 @@ export function createGameRenderer(
 ) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
-    precision: 'highp',
+    antialias: window.devicePixelRatio <= 1.5,
+    precision: 'mediump',
     powerPreference: 'high-performance',
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -19,17 +19,22 @@ export function createGameRenderer(
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   let shadowFrame = 0;
+  let renderWidth = 0;
+  let renderHeight = 0;
 
   return {
     resize(width: number, height: number) {
-      const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+      if (width === renderWidth && height === renderHeight) return;
+      renderWidth = width;
+      renderHeight = height;
+      const pixelRatio = Math.min(window.devicePixelRatio, 1.25);
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     },
     render() {
-      shadowFrame = (shadowFrame + 1) % 6;
+      shadowFrame = (shadowFrame + 1) % 12;
       if (shadowFrame === 0) renderer.shadowMap.needsUpdate = true;
       renderer.render(scene, camera);
     },

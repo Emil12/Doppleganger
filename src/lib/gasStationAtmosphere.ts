@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 const RAIN_NAME = 'night-rain';
+const RAIN_DATA_KEY = 'nightRain';
 
 function seeded(index: number, salt: number) {
   return Math.abs(Math.sin(index * 91.17 + salt * 14.31) * 43758.5453) % 1;
@@ -24,6 +25,7 @@ function addRain(scene: THREE.Scene) {
   });
   const rain = new THREE.LineSegments(geometry, material);
   rain.name = RAIN_NAME;
+  scene.userData[RAIN_DATA_KEY] = rain;
   scene.add(rain);
 }
 
@@ -67,7 +69,7 @@ export function addAtmosphere(scene: THREE.Scene) {
 }
 
 export function updateAtmosphere(scene: THREE.Scene, delta: number) {
-  const rain = scene.getObjectByName(RAIN_NAME);
+  const rain = scene.userData[RAIN_DATA_KEY] as THREE.LineSegments | undefined;
   if (!rain) return;
   rain.position.y -= delta * 13;
   rain.position.x -= delta * 1.3;

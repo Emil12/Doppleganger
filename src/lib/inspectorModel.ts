@@ -77,9 +77,6 @@ export function makeImmortalInspector(model: CustomerModel) {
     [0.23, 1.46, -0.25],
   );
   badge.scale.y = 1.25;
-  const glow = new THREE.PointLight(0x8d0008, 4.5, 6, 2);
-  glow.position.set(0, 1.8, -0.55);
-  details.add(glow);
   model.root.add(details);
 }
 
