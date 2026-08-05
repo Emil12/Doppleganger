@@ -1,0 +1,61 @@
+.customer-feedback {
+  position: absolute;
+  z-index: 60;
+  top: 17%;
+  left: 50%;
+  width: min(430px, calc(100% - 36px));
+  padding: 18px 22px;
+  border: 1px solid rgba(210, 195, 118, 0.55);
+  translate: -50% 0;
+  text-align: center;
+  color: #e9e3c9;
+  background: rgba(8, 14, 10, 0.94);
+  box-shadow: 0 16px 55px rgba(0, 0, 0, 0.55);
+  font-family: "Courier New", monospace;
+  pointer-events: none;
+  animation: customer-feedback-in 220ms ease-out,
+    customer-feedback-out 300ms ease-in 2.35s forwards;
+}
+
+.customer-feedback span,
+.customer-feedback strong {
+  display: block;
+}
+
+.customer-feedback span {
+  color: #d7bd62;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.customer-feedback strong {
+  margin-top: 7px;
+  font-size: clamp(15px, 3vw, 23px);
+  letter-spacing: 0.08em;
+}
+
+.customer-feedback p {
+  margin: 8px 0 0;
+  color: #9da69e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.customer-feedback--incorrect {
+  border-color: rgba(190, 61, 55, 0.7);
+  background: rgba(35, 4, 6, 0.95);
+}
+
+.customer-feedback--incorrect span,
+.customer-feedback--incorrect strong {
+  color: #eb7770;
+}
+
+@keyframes customer-feedback-in {
+  from { opacity: 0; translate: -50% -12px; }
+}
+
+@keyframes customer-feedback-out {
+  to { opacity: 0; translate: -50% -8px; }
+}

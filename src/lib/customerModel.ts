@@ -5,6 +5,7 @@ import { createCustomerBody } from './customerBody';
 import { isSharedCustomerGeometry } from './customerGeometry';
 import { customerStyle } from './customerStyle';
 import { type AnomalyKind, randomAnomalyKind } from './anomalyTypes';
+import { addOutlawLook } from './outlawModel';
 
 export { animateCustomer } from './customerAnimation';
 
@@ -21,6 +22,7 @@ export type CustomerModel = {
   shoppingBag: THREE.Group;
   idCard: THREE.Group;
   isAnomaly: boolean;
+  isOutlaw: boolean;
   anomalyFeatures: THREE.Group;
   anomalyClue: AnomalyClue | null;
   anomalyKind: AnomalyKind | null;
@@ -28,7 +30,7 @@ export type CustomerModel = {
 
 const ANOMALY_CLUES: AnomalyClue[] = ['height', 'eyes', 'twitch', 'head', 'arm', 'id'];
 
-export function createCustomerModel(index: number, isAnomaly = false): CustomerModel {
+export function createCustomerModel(index: number, isAnomaly = false, isOutlaw = false): CustomerModel {
   const style = customerStyle(index);
   const anomalyClue = isAnomaly
     ? ANOMALY_CLUES[Math.floor(Math.random() * ANOMALY_CLUES.length)]
@@ -37,6 +39,7 @@ export function createCustomerModel(index: number, isAnomaly = false): CustomerM
   const root = new THREE.Group();
   root.name = 'customer';
   const body = createCustomerBody(root, style, index, anomalyClue === 'eyes');
+  if (isOutlaw) addOutlawLook(body.head, body.rightArm);
   const shoppingBag = createShoppingBag();
   const idCard = createIdCard(anomalyClue === 'id');
   const anomalyFeatures = anomalyKind ? createAnomalyFeatures(anomalyKind) : new THREE.Group();
@@ -52,6 +55,7 @@ export function createCustomerModel(index: number, isAnomaly = false): CustomerM
     shoppingBag,
     idCard,
     isAnomaly,
+    isOutlaw,
     anomalyFeatures,
     anomalyClue,
     anomalyKind,

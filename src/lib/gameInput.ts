@@ -13,6 +13,8 @@ export function handleGameKey(
   onRefuse: () => void,
   onReload: () => void,
   onUseMedkit: () => void,
+  onThrowGrenade: () => void,
+  onThrowMolotov: () => void,
   onSelectSlot: (slot: WeaponSlot) => void,
 ) {
   if (event.code === 'Digit1' || event.code === 'Numpad1') {
@@ -53,6 +55,16 @@ export function handleGameKey(
   if (event.code === 'KeyH') {
     event.preventDefault();
     if (pressed && !event.repeat) onUseMedkit();
+    return;
+  }
+  if (event.code === 'KeyG') {
+    event.preventDefault();
+    if (pressed && !event.repeat) onThrowGrenade();
+    return;
+  }
+  if (event.code === 'KeyY') {
+    event.preventDefault();
+    if (pressed && !event.repeat) onThrowMolotov();
     return;
   }
   if (event.code === 'KeyT') {

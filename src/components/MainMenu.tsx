@@ -8,6 +8,7 @@ import { HowToPlayMenu } from './HowToPlayMenu';
 import { MainMenuBackdrop } from './MainMenuBackdrop';
 import { MainMenuActions } from './MainMenuActions';
 import { MainMenuClasses } from './MainMenuClasses';
+import { MainMenuDailyRewards } from './MainMenuDailyRewards';
 import { MainMenuFriends } from './MainMenuFriends';
 import { MainMenuMode } from './MainMenuMode';
 import { MainMenuProfile } from './MainMenuProfile';
@@ -25,14 +26,17 @@ type MainMenuProps = {
   economyBusy: boolean;
   onSettingsChange: (settings: GameSettings) => void;
   onBuyMedkit: () => void;
+  onBuyGrenade: () => void;
+  onBuyMolotov: () => void;
   onBuyClass: (playerClass: PlayerClassKind) => void;
   onSelectClass: (playerClass: PlayerClassKind) => void;
   onNicknameChange: (displayName: string) => Promise<boolean>;
+  onClaimDailyReward: () => Promise<boolean>;
   onStart: () => void;
   freePlayRemainingMs: number | null;
 };
 
-type MenuPanel = 'main' | 'settings' | 'shop' | 'classes' | 'mode' | 'friends' | 'howToPlay';
+type MenuPanel = 'main' | 'settings' | 'shop' | 'classes' | 'mode' | 'friends' | 'howToPlay' | 'dailyRewards';
 
 export function MainMenu({
   settings,
@@ -40,9 +44,12 @@ export function MainMenu({
   economyBusy,
   onSettingsChange,
   onBuyMedkit,
+  onBuyGrenade,
+  onBuyMolotov,
   onBuyClass,
   onSelectClass,
   onNicknameChange,
+  onClaimDailyReward,
   onStart,
   freePlayRemainingMs,
 }: MainMenuProps) {
@@ -119,6 +126,7 @@ export function MainMenu({
                 onFriends={() => setPanel('friends')}
                 onSettings={() => setPanel('settings')}
                 onHandbook={() => setPanel('howToPlay')}
+                onDailyRewards={() => setPanel('dailyRewards')}
               />
             )}
             {panel === 'settings' && (
@@ -133,6 +141,8 @@ export function MainMenu({
                 economy={economy}
                 busy={economyBusy}
                 onBuyMedkit={onBuyMedkit}
+                onBuyGrenade={onBuyGrenade}
+                onBuyMolotov={onBuyMolotov}
                 onBack={() => setPanel('main')}
               />
             )}
@@ -159,6 +169,15 @@ export function MainMenu({
               />
             )}
             {panel === 'howToPlay' && <HowToPlayMenu onBack={() => setPanel('main')} />}
+            {panel === 'dailyRewards' && (
+              <MainMenuDailyRewards
+                signedIn={economy.signedIn}
+                busy={economyBusy}
+                hasPoliceman={economy.ownedClasses.includes('policeman')}
+                onClaim={onClaimDailyReward}
+                onBack={() => setPanel('main')}
+              />
+            )}
           </div>
           <footer>
             <span>V.09 · EMPLOYEE TERMINAL</span>

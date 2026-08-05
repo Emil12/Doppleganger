@@ -8,6 +8,7 @@ export type PlayerClassKind =
   | 'medic'
   | 'retired_hunter'
   | 'soldier'
+  | 'striker'
   | 'policeman'
   | 'flamer';
 
@@ -30,6 +31,7 @@ export const PLAYER_CLASS_KINDS: PlayerClassKind[] = [
   'medic',
   'retired_hunter',
   'soldier',
+  'striker',
   'policeman',
   'flamer',
 ];
@@ -91,6 +93,16 @@ export const PLAYER_CLASSES: Record<PlayerClassKind, PlayerClassConfig> = {
     icon: 'S',
     cost: 150,
     weapons: ['m16', 'glock'],
+    startingMedkits: 0,
+    maxHealth: 100,
+    sprintSpeed: 1.75,
+  },
+  striker: {
+    name: 'STRIKER',
+    description: 'Starts with a fully automatic AK-47 and a 30-round magazine.',
+    icon: 'K',
+    cost: 135,
+    weapons: ['ak47'],
     startingMedkits: 0,
     maxHealth: 100,
     sprintSpeed: 1.75,

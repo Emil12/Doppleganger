@@ -31,7 +31,7 @@ export function updateAnomalyChase(options: ChaseOptions) {
   if (!kind || (!customer.immortal && isHiddenInRestroom(scene, camera.position))) return;
   const profile = ANOMALY_PROFILES[kind];
   const speedScale = 1 + Math.max(0, options.difficultyMultiplier - 1) * 0.3;
-  const speed = customer.immortal ? 4.9 : profile.speed * speedScale;
+  const speed = customer.immortal ? 3.4 : profile.speed * speedScale;
   const distance = Math.hypot(
     customer.model.root.position.x - camera.position.x,
     customer.model.root.position.z - camera.position.z,

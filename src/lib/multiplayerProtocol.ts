@@ -30,6 +30,26 @@ export type TeamRevivePayload = {
   targetId: string;
 };
 
+export type ChatMessage = {
+  messageId: string;
+  playerId: string;
+  playerName: string;
+  text: string;
+  sentAt: string;
+};
+
+export function validChatMessage(value: unknown): value is ChatMessage {
+  if (!value || typeof value !== 'object') return false;
+  const message = value as Partial<ChatMessage>;
+  return typeof message.messageId === 'string' && message.messageId.length > 0
+    && typeof message.playerId === 'string' && message.playerId.length > 0
+    && typeof message.playerName === 'string' && message.playerName.length > 0
+    && message.playerName.length <= 24
+    && typeof message.text === 'string' && message.text.trim().length > 0
+    && message.text.length <= 160
+    && typeof message.sentAt === 'string' && !Number.isNaN(Date.parse(message.sentAt));
+}
+
 export function validTransform(value: TransformPayload) {
   return value.playerId.length > 0
     && value.position.length === 3

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { bluedSteel, boltSteel, darkSteel, walnut } from './shotgunMaterials';
+import { bluedSteel, boltSteel, brass, darkSteel, walnut } from './shotgunMaterials';
 
 function mesh(
   group: THREE.Group,
@@ -48,6 +48,20 @@ export function createRevolverModel(scale = 1) {
   }
   revolver.add(cylinder);
 
+  const ejectorGeometry = new THREE.CylinderGeometry(0.024, 0.024, 0.52, 10);
+  ejectorGeometry.rotateX(Math.PI / 2);
+  mesh(revolver, ejectorGeometry, darkSteel, [0, -0.005, -0.6]);
+  mesh(revolver, new THREE.BoxGeometry(0.025, 0.1, 0.08), boltSteel, [0.14, 0.08, 0.03]);
+
+  const frontSight = mesh(revolver, new THREE.BoxGeometry(0.035, 0.1, 0.08), darkSteel, [
+    0, 0.22, -0.8,
+  ]);
+  frontSight.rotation.x = -0.08;
+  const hammer = mesh(revolver, new RoundedBoxGeometry(0.1, 0.16, 0.12, 2, 0.025), darkSteel, [
+    0, 0.14, 0.27,
+  ]);
+  hammer.rotation.x = -0.34;
+
   const guard = mesh(
     revolver,
     new THREE.TorusGeometry(0.105, 0.018, 8, 18, Math.PI * 1.75),
@@ -56,6 +70,10 @@ export function createRevolverModel(scale = 1) {
   );
   guard.rotation.y = Math.PI / 2;
   guard.rotation.z = -0.25;
+  const trigger = mesh(revolver, new THREE.BoxGeometry(0.024, 0.13, 0.025), boltSteel, [
+    0, -0.16, 0.03,
+  ]);
+  trigger.rotation.x = -0.28;
   const grip = mesh(
     revolver,
     new RoundedBoxGeometry(0.25, 0.5, 0.24, 4, 0.065),
@@ -63,6 +81,9 @@ export function createRevolverModel(scale = 1) {
     [0, -0.34, 0.21],
   );
   grip.rotation.x = -0.24;
+  for (const x of [-0.128, 0.128]) {
+    mesh(revolver, new THREE.SphereGeometry(0.018, 8, 5), brass, [x, -0.34, 0.2]);
+  }
   revolver.scale.setScalar(scale);
   return revolver;
 }

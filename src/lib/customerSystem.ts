@@ -22,6 +22,7 @@ import { type Customer } from './customerTypes';
 import { type CustomerSystemOptions } from './customerSystemTypes';
 import { spawnImmortalInspector } from './inspectorModel';
 import { nightmareCustomerIsAnomaly } from './nightmareMode';
+import { prepareOutlawAttack, updateOutlawAttack } from './outlawChase';
 
 export { type CheckoutKind } from './customerTypes';
 
@@ -66,6 +67,16 @@ export function createCustomerSystem(
     nightmareCustomerNumber += 1;
     return isAnomaly;
   };
+  const spawnNextCustomer = (time: number) => {
+    const isAnomaly = selectNextAnomaly();
+    const isOutlaw = !isAnomaly && !isNightmareMode() && Math.random() < 0.18;
+    const customer = spawnCustomer(isAnomaly, isOutlaw);
+    if (isOutlaw) {
+      customer.phase = 'attacking';
+      prepareOutlawAttack(customer, time);
+    }
+    return customer;
+  };
 
   const clearCustomers = () => {
     customers.forEach(({ model, splatter, bloodTrail }) => {
@@ -85,7 +96,7 @@ export function createCustomerSystem(
     nightmareSpawnsRemaining = 0;
     nightmareCustomerNumber = 0;
     nextNightmareSpawnAt = Number.POSITIVE_INFINITY;
-    spawnCustomer(selectNextAnomaly());
+    spawnNextCustomer(time);
     nextCustomerAt = time + nextDelay();
   };
 
@@ -132,7 +143,7 @@ export function createCustomerSystem(
       }
     }
     if (time >= nextCustomerAt) {
-      spawnCustomer(selectNextAnomaly());
+      spawnNextCustomer(time);
       nextCustomerAt = time + nextDelay();
     }
     queue.length = 0;
@@ -152,17 +163,21 @@ export function createCustomerSystem(
       } else if (customer.phase === 'leaving' && !updateLeavingPhase(customer, time, delta)) {
         customers.splice(index, 1);
       } else if (customer.phase === 'attacking') {
-        updateAnomalyChase({
-          scene,
-          camera,
-          customer,
-          audio: anomalyAudio,
-          time,
-          delta,
-          onPlayerHit,
-          isBloodEnabled,
-          difficultyMultiplier: getDifficultyMultiplier(),
-        });
+        if (customer.model.isOutlaw) {
+          updateOutlawAttack(customer, camera, time, delta, () => onPlayerHit(false));
+        } else {
+          updateAnomalyChase({
+            scene,
+            camera,
+            customer,
+            audio: anomalyAudio,
+            time,
+            delta,
+            onPlayerHit,
+            isBloodEnabled,
+            difficultyMultiplier: getDifficultyMultiplier(),
+          });
+        }
       }
     }
   };

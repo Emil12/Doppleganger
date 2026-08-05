@@ -41,7 +41,7 @@ export function HowToPlayMenu({ onBack }: HowToPlayMenuProps) {
       </div>
       <small>
         Hide inside the restroom when chased. Do not shoot innocent customers or
-        glass: both remove judgement hearts. Fuel pumps explode after five hits.
+        glass: both remove judgement hearts. Outlaws attack on sight.
       </small>
       <button type="button" onClick={onBack}>BACK</button>
     </div>

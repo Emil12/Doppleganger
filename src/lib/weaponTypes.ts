@@ -5,6 +5,7 @@ export type WeaponKind =
   | 'double_barrel'
   | 'flamethrower'
   | 'm16'
+  | 'ak47'
   | 'glock';
 
 export type WeaponSlot = 1 | 2;
@@ -73,6 +74,15 @@ export const WEAPON_CONFIG: Record<
     shotDelayMs: 120,
     projectiles: 1,
     spread: 0.006,
+    damage: 1,
+  },
+  ak47: {
+    label: 'AK-47',
+    capacity: 30,
+    shellLoadMs: 95,
+    shotDelayMs: 105,
+    projectiles: 1,
+    spread: 0.008,
     damage: 1,
   },
   glock: {

@@ -27,7 +27,9 @@ function addMuzzleFlash(
   flash.quaternion.setFromUnitVectors(UP_DIRECTION, direction);
   flash.position.copy(start).addScaledVector(direction, size);
   effect.add(flash);
-
+  const light = new THREE.PointLight(0xffb45e, 2.4, 4.5, 2);
+  light.position.copy(start).addScaledVector(direction, 0.12);
+  effect.add(light);
 }
 
 function addSmoke(effect: THREE.Group, start: THREE.Vector3, direction: THREE.Vector3) {

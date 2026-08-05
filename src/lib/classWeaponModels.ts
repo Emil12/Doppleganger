@@ -41,6 +41,18 @@ function addLongGunStock(group: THREE.Group, positionZ: number) {
   ]);
 }
 
+function addTrigger(group: THREE.Group, z: number) {
+  const guard = mesh(
+    group,
+    new THREE.TorusGeometry(0.11, 0.019, 7, 16, Math.PI * 1.7),
+    darkSteel,
+    [0, -0.19, z],
+  );
+  guard.rotation.y = Math.PI / 2;
+  const trigger = mesh(group, new THREE.BoxGeometry(0.022, 0.13, 0.025), boltSteel, [0, -0.18, z]);
+  trigger.rotation.x = -0.3;
+}
+
 export function createBoltActionRifleModel(scale = 1) {
   const rifle = new THREE.Group();
   tube(rifle, 0.052, 2.25, [0, 0.12, -0.93], bluedSteel);
@@ -55,6 +67,10 @@ export function createBoltActionRifleModel(scale = 1) {
   bolt.rotation.z = Math.PI / 2;
   bolt.userData.baseX = bolt.position.x;
   mesh(rifle, new THREE.BoxGeometry(0.2, 0.18, 0.48), darkSteel, [0, -0.18, 0.25]);
+  mesh(rifle, new THREE.BoxGeometry(0.22, 0.055, 0.34), darkSteel, [0, -0.16, -0.18]);
+  mesh(rifle, new THREE.BoxGeometry(0.03, 0.13, 0.03), darkSteel, [0, 0.25, -1.72]);
+  mesh(rifle, new THREE.BoxGeometry(0.16, 0.045, 0.08), darkSteel, [0, 0.21, 0.22]);
+  addTrigger(rifle, 0.32);
   addLongGunStock(rifle, 1.28);
   rifle.scale.setScalar(scale);
   return rifle;
@@ -74,6 +90,10 @@ export function createDoubleBarrelModel(scale = 1) {
     0, 0.01, 0.28,
   ]);
   mesh(shotgun, new THREE.BoxGeometry(0.24, 0.025, 1.72), brass, [0, 0.2, -0.78]);
+  mesh(shotgun, new RoundedBoxGeometry(0.3, 0.22, 0.62, 3, 0.05), walnut, [0, -0.08, -0.58]);
+  mesh(shotgun, new THREE.SphereGeometry(0.024, 8, 5), brass, [0, 0.24, -1.56]);
+  const breakLever = mesh(shotgun, new THREE.BoxGeometry(0.18, 0.035, 0.12), boltSteel, [0, 0.2, 0.36]);
+  breakLever.rotation.x = -0.18;
   const guard = mesh(
     shotgun,
     new THREE.TorusGeometry(0.12, 0.02, 7, 18, Math.PI * 1.7),
@@ -81,6 +101,7 @@ export function createDoubleBarrelModel(scale = 1) {
     [0, -0.18, 0.34],
   );
   guard.rotation.y = Math.PI / 2;
+  addTrigger(shotgun, 0.3);
   addLongGunStock(shotgun, 1.28);
   shotgun.scale.setScalar(scale);
   return shotgun;

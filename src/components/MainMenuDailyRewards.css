@@ -1,0 +1,78 @@
+.daily-rewards {
+  display: grid;
+  gap: 10px;
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.1em;
+}
+
+.daily-rewards header,
+.daily-rewards header div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.daily-rewards header div { flex-direction: column; }
+.daily-rewards header small { color: #737e76; font-size: 7px; }
+.daily-rewards header span { color: #ddc96f; }
+
+.daily-rewards__months {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.main-menu .daily-rewards__months button {
+  padding: 8px;
+  text-align: center;
+}
+
+.daily-rewards__months button.is-selected {
+  border-color: #bca958;
+  color: #fff0a5;
+  background: #35432f;
+}
+
+.daily-rewards__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.daily-rewards__grid > div {
+  min-height: 44px;
+  padding: 6px 3px;
+  border: 1px solid rgba(159, 151, 104, 0.18);
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  color: #928966;
+  background: rgba(11, 16, 13, 0.72);
+}
+
+.daily-rewards__grid small { color: #657068; font-size: 6px; }
+.daily-rewards__grid .is-next { border-color: #c1a94d; box-shadow: inset 0 0 12px #82702833; }
+.daily-rewards__grid .is-claimed { color: #88ae91; background: rgba(45, 78, 54, 0.35); }
+
+.main-menu .daily-rewards__claim {
+  border-color: #bca958;
+  color: #fff0a5;
+  text-align: center;
+}
+
+.main-menu .daily-rewards__claim:disabled { opacity: 0.48; cursor: not-allowed; translate: none; }
+
+.daily-rewards__signin {
+  padding: 12px;
+  border: 1px solid rgba(164, 180, 165, 0.18);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #778179;
+}
+
+.daily-rewards__signin a { color: #ddca74; }
+
+@media (max-width: 420px) {
+  .daily-rewards__grid { grid-template-columns: repeat(5, 1fr); }
+}

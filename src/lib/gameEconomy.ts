@@ -7,6 +7,8 @@ import {
 export type GameEconomy = {
   coins: number;
   medkits: number;
+  grenades: number;
+  molotovs: number;
   signedIn: boolean;
   displayName: string;
   selectedClass: PlayerClassKind;
@@ -17,6 +19,8 @@ export type GameEconomy = {
 type EconomyRow = {
   coins: number;
   medkits: number;
+  grenades: number;
+  molotovs: number;
   display_name: unknown;
   selected_class: unknown;
   owned_classes: unknown;
@@ -26,6 +30,8 @@ type EconomyRow = {
 export const EMPTY_GAME_ECONOMY: GameEconomy = {
   coins: 0,
   medkits: 0,
+  grenades: 0,
+  molotovs: 0,
   signedIn: false,
   displayName: 'GUEST',
   selectedClass: 'attendant',
@@ -43,6 +49,8 @@ function economyFromRow(row: EconomyRow): GameEconomy {
   return {
     coins: row.coins,
     medkits: row.medkits,
+    grenades: row.grenades,
+    molotovs: row.molotovs,
     signedIn: true,
     displayName: typeof row.display_name === 'string' ? row.display_name : 'PLAYER',
     selectedClass,
@@ -73,7 +81,7 @@ export async function loadGameEconomy(): Promise<GameEconomy> {
     );
   const { data, error } = await supabase
     .from('game_profiles')
-    .select('coins, medkits, display_name, selected_class, owned_classes, free_play_hours')
+    .select('coins, medkits, grenades, molotovs, display_name, selected_class, owned_classes, free_play_hours')
     .eq('user_id', userData.user.id)
     .single();
   if (error || !data) return { ...EMPTY_GAME_ECONOMY, signedIn: true };
@@ -81,7 +89,9 @@ export async function loadGameEconomy(): Promise<GameEconomy> {
 }
 
 async function runEconomyAction(
-  name: 'add_game_coins' | 'buy_game_medkit' | 'use_game_medkit',
+  name: 'add_game_coins' | 'buy_game_medkit' | 'use_game_medkit'
+    | 'buy_game_grenade' | 'use_game_grenade'
+    | 'buy_game_molotov' | 'use_game_molotov',
   args?: { amount: number },
 ) {
   const { data, error } = await supabase.rpc(name, args);
@@ -99,6 +109,22 @@ export function buyGameMedkit() {
 
 export function useGameMedkit() {
   return runEconomyAction('use_game_medkit');
+}
+
+export function buyGameGrenade() {
+  return runEconomyAction('buy_game_grenade');
+}
+
+export function useGameGrenade() {
+  return runEconomyAction('use_game_grenade');
+}
+
+export function buyGameMolotov() {
+  return runEconomyAction('buy_game_molotov');
+}
+
+export function useGameMolotov() {
+  return runEconomyAction('use_game_molotov');
 }
 
 async function runClassAction(

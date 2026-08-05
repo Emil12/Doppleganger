@@ -9,25 +9,25 @@ export type AnomalyProfile = {
 
 export const ANOMALY_PROFILES: Record<AnomalyKind, AnomalyProfile> = {
   screamer: {
-    speed: 4.25,
+    speed: 3,
     hitPoints: 4,
     attackCooldown: 1_250,
     bloodDropInterval: 175,
   },
   crier: {
-    speed: 3.65,
+    speed: 2.6,
     hitPoints: 5,
     attackCooldown: 1_400,
     bloodDropInterval: 210,
   },
   crawler: {
-    speed: 4.6,
+    speed: 3.25,
     hitPoints: 3,
     attackCooldown: 950,
     bloodDropInterval: 260,
   },
   stalker: {
-    speed: 3.25,
+    speed: 2.3,
     hitPoints: 6,
     attackCooldown: 1_650,
     bloodDropInterval: 320,

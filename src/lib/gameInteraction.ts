@@ -22,6 +22,7 @@ export type DoorHudState = {
 
 export type CustomerInteractions = {
   hitCustomer: (object: THREE.Object3D, time: number) => boolean;
+  blastCustomers: (position: THREE.Vector3, radius: number, damage: number) => void;
   messDistance: (camera: THREE.Camera) => number;
   cleanNearest: (camera: THREE.Camera) => boolean;
   checkoutDistance: (camera: THREE.Camera) => number;
@@ -106,8 +107,8 @@ export function createGameInteraction(options: InteractionOptions) {
       return;
     }
     const nextWeapon = nearby.cabinet.kind;
-    if (!nextWeapon || !pickupWeapon(scene, camera, nextWeapon)) return;
     activeSlot ??= 1;
+    if (!nextWeapon || !pickupWeapon(scene, camera, nextWeapon, activeSlot)) return;
     weaponSlots[activeSlot - 1] = nextWeapon;
     options.onWeaponChange(nextWeapon);
   };

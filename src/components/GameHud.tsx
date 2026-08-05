@@ -17,6 +17,8 @@ type GameHudProps = {
   maxHealth: number;
   judgementPoints: number;
   medkits: number;
+  grenades: number;
+  molotovs: number;
   weapon: WeaponKind | null;
   activeSlot: WeaponSlot | null;
   ammo: number;
@@ -45,6 +47,8 @@ export function GameHud({
   maxHealth,
   judgementPoints,
   medkits,
+  grenades,
+  molotovs,
   weapon,
   activeSlot,
   ammo,
@@ -122,6 +126,18 @@ export function GameHud({
         <div className="portable-medkit">
           <span>H · MEDKIT</span>
           <strong>× {medkits}</strong>
+        </div>
+      )}
+      {grenades > 0 && (
+        <div className="grenade-hud">
+          <span>G · GRENADE</span>
+          <strong>× {grenades}</strong>
+        </div>
+      )}
+      {molotovs > 0 && (
+        <div className="molotov-hud">
+          <span>Y · MOLOTOV</span>
+          <strong>× {molotovs}</strong>
         </div>
       )}
       {nearDownedTeammate && (

@@ -2,6 +2,7 @@ type MainMenuActionsProps = {
   difficulty: string;
   medkits: number;
   onClasses: () => void;
+  onDailyRewards: () => void;
   onFriends: () => void;
   onHandbook: () => void;
   onMode: () => void;
@@ -38,11 +39,14 @@ export function MainMenuActions(props: MainMenuActionsProps) {
         <button type="button" onClick={props.onFriends}>
           <i aria-hidden="true">+</i><span>FRIENDS<small>Search and add players</small></span><kbd>06</kbd>
         </button>
+        <button type="button" onClick={props.onDailyRewards}>
+          <i aria-hidden="true">★</i><span>DAILY REWARDS<small>60 days of coin bonuses</small></span><kbd>07</kbd>
+        </button>
         <button type="button" onClick={props.onSettings}>
-          <i aria-hidden="true">⚙</i><span>SETTINGS<small>Video and controls</small></span><kbd>07</kbd>
+          <i aria-hidden="true">⚙</i><span>SETTINGS<small>Video and controls</small></span><kbd>08</kbd>
         </button>
         <button type="button" onClick={props.onHandbook}>
-          <i aria-hidden="true">?</i><span>HOW TO PLAY<small>Employee handbook</small></span><kbd>08</kbd>
+          <i aria-hidden="true">?</i><span>HOW TO PLAY<small>Employee handbook</small></span><kbd>09</kbd>
         </button>
       </div>
     </div>

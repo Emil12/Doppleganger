@@ -33,6 +33,7 @@ export function createCustomerInteractions(
     if (customer.immortal) return true;
     if (
       !customer.model.isAnomaly
+      && !customer.model.isOutlaw
       && customer.lastJudgementShotAt !== time
     ) {
       customer.lastJudgementShotAt = time;
@@ -83,6 +84,17 @@ export function createCustomerInteractions(
       prepareAnomalyChase(customer, performance.now());
     }
     return customer.model.isAnomaly ? 'anomaly' : 'buyer';
+  };
+
+  const blastCustomers = (position: THREE.Vector3, radius: number, damage: number) => {
+    const time = performance.now();
+    customers.forEach((customer) => {
+      if (customer.diedAt !== null) return;
+      if (horizontalDistance(customer.model.root.position, position) > radius) return;
+      for (let hit = 0; hit < damage && customer.diedAt === null; hit += 1) {
+        hitCustomer(customer.model.root, time);
+      }
+    });
   };
 
   const refuseNext = (camera: THREE.Camera) => {
@@ -136,6 +148,7 @@ export function createCustomerInteractions(
 
   return {
     hitCustomer,
+    blastCustomers,
     messDistance,
     cleanNearest,
     checkoutDistance,

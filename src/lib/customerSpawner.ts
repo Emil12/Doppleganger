@@ -12,8 +12,8 @@ export function createCustomerSpawner(
 ) {
   let customerNumber = 0;
 
-  return (isAnomaly = false) => {
-    const model = createCustomerModel(customerNumber, isAnomaly);
+  return (isAnomaly = false, isOutlaw = false) => {
+    const model = createCustomerModel(customerNumber, isAnomaly, isOutlaw);
     markCullable(model.root, 3, 55);
     customerNumber += 1;
     model.root.position.set(SHOPPING_ROUTE[0].x, 0, SHOPPING_ROUTE[0].z);
@@ -25,7 +25,7 @@ export function createCustomerSpawner(
       waitUntil: 0,
       hitPoints: model.anomalyKind
         ? ANOMALY_PROFILES[model.anomalyKind].hitPoints * getDifficultyMultiplier()
-        : 1,
+        : model.isOutlaw ? Math.ceil(3 * getDifficultyMultiplier()) : 1,
       diedAt: null,
       splatter: null,
       nextAttackAt: 0,

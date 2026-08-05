@@ -19,6 +19,8 @@ type SessionInputOptions = {
   onRefuse: () => void;
   onReload: () => void;
   onUseMedkit: () => void;
+  onThrowGrenade: () => void;
+  onThrowMolotov: () => void;
   onSelectSlot: (slot: WeaponSlot) => void;
   onAim: (aiming: boolean) => void;
   onShoot: (pressed: boolean) => void;
@@ -38,6 +40,8 @@ export function attachGameSessionInput({
   onRefuse,
   onReload,
   onUseMedkit,
+  onThrowGrenade,
+  onThrowMolotov,
   onSelectSlot,
   onAim,
   onShoot,
@@ -59,11 +63,20 @@ export function attachGameSessionInput({
       onRefuse,
       onReload,
       onUseMedkit,
+      onThrowGrenade,
+      onThrowMolotov,
       onSelectSlot,
     );
   };
-  const keyDown = (event: KeyboardEvent) => key(event, true);
-  const keyUp = (event: KeyboardEvent) => key(event, false);
+  const isTyping = (event: KeyboardEvent) => (
+    event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
+  );
+  const keyDown = (event: KeyboardEvent) => {
+    if (!isTyping(event)) key(event, true);
+  };
+  const keyUp = (event: KeyboardEvent) => {
+    if (!isTyping(event)) key(event, false);
+  };
   const mouseMove = (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas) return;
     const sensitivity = getSensitivity();

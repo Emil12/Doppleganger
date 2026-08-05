@@ -33,34 +33,44 @@ function createWoodTexture() {
   return texture;
 }
 
-export const bluedSteel = new THREE.MeshStandardMaterial({
-  color: 0x11191c,
-  metalness: 0.98,
-  roughness: 0.17,
+export const bluedSteel = new THREE.MeshPhysicalMaterial({
+  color: 0x1b2529,
+  metalness: 0.94,
+  roughness: 0.24,
+  clearcoat: 0.48,
+  clearcoatRoughness: 0.16,
 });
 
-export const darkSteel = new THREE.MeshStandardMaterial({
-  color: 0x050708,
-  metalness: 0.92,
-  roughness: 0.27,
+export const darkSteel = new THREE.MeshPhysicalMaterial({
+  color: 0x0b0f10,
+  metalness: 0.86,
+  roughness: 0.34,
+  clearcoat: 0.28,
+  clearcoatRoughness: 0.22,
 });
 
-export const boltSteel = new THREE.MeshStandardMaterial({
-  color: 0x8d9693,
-  metalness: 1,
-  roughness: 0.13,
+export const boltSteel = new THREE.MeshPhysicalMaterial({
+  color: 0xa6afab,
+  metalness: 0.96,
+  roughness: 0.2,
+  clearcoat: 0.6,
+  clearcoatRoughness: 0.1,
 });
 
-export const walnut = new THREE.MeshStandardMaterial({
+export const walnut = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
   map: createWoodTexture(),
-  roughness: 0.3,
+  roughness: 0.38,
+  clearcoat: 0.24,
+  clearcoatRoughness: 0.25,
 });
 
-export const brass = new THREE.MeshStandardMaterial({
-  color: 0xb77a22,
-  metalness: 0.88,
-  roughness: 0.21,
+export const brass = new THREE.MeshPhysicalMaterial({
+  color: 0xc48b32,
+  metalness: 0.9,
+  roughness: 0.25,
+  clearcoat: 0.32,
+  clearcoatRoughness: 0.16,
 });
 
 export const rubber = new THREE.MeshStandardMaterial({

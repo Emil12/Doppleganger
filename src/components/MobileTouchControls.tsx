@@ -11,6 +11,10 @@ export type MobileTouchControlLabels = {
 };
 
 export type MobileTouchControlsProps = MobileTouchCallbacks & {
+  onThrowGrenade: () => void;
+  grenades: number;
+  onThrowMolotov: () => void;
+  molotovs: number;
   disabled?: boolean;
   className?: string;
   labels?: Partial<MobileTouchControlLabels>;
@@ -28,6 +32,10 @@ export function MobileTouchControls({
   onLook,
   onShoot,
   onStart,
+  onThrowGrenade,
+  grenades,
+  onThrowMolotov,
+  molotovs,
   disabled = false,
   className,
   labels,
@@ -82,6 +90,36 @@ export function MobileTouchControls({
       >
         <span aria-hidden="true">FIRE</span>
       </button>
+      {grenades > 0 && (
+        <button
+          className="mobile-touch-controls__grenade"
+          type="button"
+          aria-label="Throw grenade"
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onStart?.();
+            onThrowGrenade();
+          }}
+        >
+          GRENADE<br />× {grenades}
+        </button>
+      )}
+      {molotovs > 0 && (
+        <button
+          className="mobile-touch-controls__molotov"
+          type="button"
+          aria-label="Throw Molotov"
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onStart?.();
+            onThrowMolotov();
+          }}
+        >
+          MOLOTOV<br />× {molotovs}
+        </button>
+      )}
     </div>
   );
 }

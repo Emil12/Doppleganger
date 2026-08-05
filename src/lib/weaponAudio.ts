@@ -31,6 +31,7 @@ export function createWeaponAudio() {
       double_barrel: { rate: 0.58, filter: 1_750, thump: 62, gain: 1.35 },
       flamethrower: { rate: 0.38, filter: 1_100, thump: 46, gain: 0.62 },
       m16: { rate: 1.35, filter: 3_800, thump: 84, gain: 0.78 },
+      ak47: { rate: 1.08, filter: 3_150, thump: 72, gain: 0.92 },
       glock: { rate: 1.22, filter: 3_300, thump: 98, gain: 0.64 },
     }[weapon];
     const now = context.currentTime;

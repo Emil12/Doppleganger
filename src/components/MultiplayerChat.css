@@ -1,0 +1,48 @@
+.multiplayer-chat {
+  position: absolute;
+  z-index: 40;
+  top: 58px;
+  right: 10px;
+  width: min(330px, calc(100vw - 20px));
+  display: grid;
+  gap: 6px;
+  color: #cbd8cd;
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.multiplayer-chat__messages {
+  max-height: 150px;
+  padding: 8px;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  background: rgba(8, 15, 10, 0.76);
+  scrollbar-color: #536b59 #101a13;
+}
+
+.multiplayer-chat__messages p { margin: 0; display: grid; gap: 2px; }
+.multiplayer-chat__messages strong { color: #87b394; font-size: 7px; }
+.multiplayer-chat__messages span { overflow-wrap: anywhere; }
+.multiplayer-chat__messages small { color: #637269; }
+
+.multiplayer-chat form { display: grid; grid-template-columns: 1fr auto; gap: 5px; pointer-events: auto; }
+.multiplayer-chat input,
+.multiplayer-chat button {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #46594b;
+  color: #d6e1d7;
+  background: rgba(13, 24, 16, 0.94);
+  font: inherit;
+}
+
+.multiplayer-chat > button { justify-self: end; pointer-events: auto; cursor: pointer; }
+.multiplayer-chat form button { cursor: pointer; }
+.multiplayer-chat button:disabled { opacity: 0.45; cursor: wait; }
+
+@media (max-width: 620px) {
+  .multiplayer-chat { top: 118px; right: max(8px, env(safe-area-inset-right, 0px)); width: min(300px, 70vw); }
+  .multiplayer-chat__messages { max-height: 110px; }
+}

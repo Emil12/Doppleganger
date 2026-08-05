@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { type RealtimeChannel } from '@supabase/supabase-js';
 import {
+  type ChatMessage,
   type MultiplayerLocalState,
   type PresencePayload,
   type TeamDamagePayload,
   type TeamRevivePayload,
   type TransformPayload,
   validTransform,
+  validChatMessage,
 } from './multiplayerProtocol';
 import { createMultiplayerRemotePlayers } from './multiplayerRemotePlayers';
 import { type MultiplayerRoomSession } from './multiplayerRoom';
@@ -18,6 +20,7 @@ type MultiplayerSystemOptions = {
   onDamage: (damage: number) => void;
   onRevive: () => void;
   showStatus: (status: MultiplayerConnection, playerCount: number) => void;
+  onChatMessage: (message: ChatMessage) => void;
 };
 
 export function createMultiplayerSystem(scene: THREE.Scene, options: MultiplayerSystemOptions) {
@@ -70,6 +73,13 @@ export function createMultiplayerSystem(scene: THREE.Scene, options: Multiplayer
       .on<TeamRevivePayload>('broadcast', { event: 'team-revive' }, ({ payload }) => {
         if (payload.targetId === session?.playerId) options.onRevive();
       })
+      .on<ChatMessage>('broadcast', { event: 'room-chat' }, ({ payload }) => {
+        if (!channel || !session || !validChatMessage(payload)) return;
+        const presences = Object.values(channel.presenceState<PresencePayload>()).flat();
+        const sender = presences.find(({ playerId }) => playerId === payload.playerId);
+        if (!sender) return;
+        options.onChatMessage({ ...payload, playerName: sender.playerName });
+      })
       .subscribe((nextStatus) => {
         if (!channel || !session) return;
         if (nextStatus === 'SUBSCRIBED') {
@@ -105,6 +115,21 @@ export function createMultiplayerSystem(scene: THREE.Scene, options: Multiplayer
       event: 'team-revive',
       payload: { reviverId: session.playerId, targetId } satisfies TeamRevivePayload,
     });
+    return true;
+  };
+
+  const sendChat = (text: string) => {
+    const cleanedText = text.trim().replace(/\s+/g, ' ').slice(0, 160);
+    if (!channel || !session || status !== 'connected' || !cleanedText) return false;
+    const message: ChatMessage = {
+      messageId: crypto.randomUUID(),
+      playerId: session.playerId,
+      playerName: session.playerName,
+      text: cleanedText,
+      sentAt: new Date().toISOString(),
+    };
+    options.onChatMessage(message);
+    void channel.send({ type: 'broadcast', event: 'room-chat', payload: message });
     return true;
   };
 
@@ -146,6 +171,7 @@ export function createMultiplayerSystem(scene: THREE.Scene, options: Multiplayer
     hit,
     nearbyDowned: players.nearbyDowned,
     revive,
+    sendChat,
     update,
   };
 }

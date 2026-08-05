@@ -15,7 +15,7 @@ export function RadioNowPlaying({ selection }: RadioNowPlayingProps) {
         <i />
       </span>
       <span>
-        <small>80s BOOMBOX · MEME TAPE</small>
+        <small>80s BOOMBOX · HERO TAPE</small>
         <strong>{selection.title}</strong>
       </span>
       <b>

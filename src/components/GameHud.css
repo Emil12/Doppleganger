@@ -200,6 +200,38 @@
   color: #e18177;
 }
 
+.grenade-hud {
+  position: absolute;
+  right: 14px;
+  bottom: 126px;
+  padding: 7px 9px;
+  border: 1px solid rgba(163, 181, 126, 0.5);
+  display: flex;
+  gap: 10px;
+  color: #ccd4b5;
+  background: rgba(20, 27, 16, 0.84);
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.1em;
+}
+
+.grenade-hud strong { color: #c4d788; }
+
+.molotov-hud {
+  position: absolute;
+  right: 14px;
+  bottom: 160px;
+  padding: 7px 9px;
+  border: 1px solid rgba(210, 112, 63, 0.54);
+  display: flex;
+  gap: 10px;
+  color: #e4c3a8;
+  background: rgba(38, 18, 10, 0.84);
+  font: 700 8px "Courier New", monospace;
+  letter-spacing: 0.1em;
+}
+
+.molotov-hud strong { color: #ef9c56; }
+
 @keyframes exhaustion-pulse {
   to {
     background: rgba(68, 12, 9, 0.82);
@@ -310,6 +342,16 @@
   .portable-medkit {
     right: max(10px, env(safe-area-inset-right, 0px));
     bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 122px);
+  }
+
+  .grenade-hud {
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 188px);
+  }
+
+  .molotov-hud {
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 222px);
   }
 
   .weapon-hud {

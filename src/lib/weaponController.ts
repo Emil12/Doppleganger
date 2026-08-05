@@ -104,10 +104,11 @@ export function createWeaponController(options: WeaponControllerOptions) {
     }
     const weapon = options.getWeapon();
     shootOnce(true);
-    if (weapon !== 'flamethrower' || fireTimer !== undefined) return;
+    const automatic = weapon === 'flamethrower' || weapon === 'm16' || weapon === 'ak47';
+    if (!automatic || fireTimer !== undefined) return;
     fireTimer = window.setInterval(
       () => shootOnce(false),
-      WEAPON_CONFIG.flamethrower.shotDelayMs,
+      WEAPON_CONFIG[weapon].shotDelayMs,
     );
   };
   const loadShell = () => {

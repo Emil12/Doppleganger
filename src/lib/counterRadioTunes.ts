@@ -11,37 +11,13 @@ export type RadioTune = {
   wave: OscillatorType;
 };
 
-function defineTunes<T extends readonly RadioTune[] & { length: 25 }>(tunes: T) {
+function defineTunes<T extends readonly RadioTune[] & { length: 1 }>(tunes: T) {
   return tunes;
 }
 
 // Every melody is invented at runtime from these seeds; no existing tune is encoded here.
 export const COUNTER_RADIO_TUNES = defineTunes([
-  { title: 'Rickroll at the Register', bpm: 132, root: 43, scale: 'minor', seed: 1103, groove: 0, swing: 0.12, wave: 'square' },
-  { title: 'Dramatic Chipmunk Break', bpm: 96, root: 48, scale: 'whole', seed: 2207, groove: 1, swing: 0.04, wave: 'triangle' },
-  { title: 'Epic Sax Fuel Run', bpm: 158, root: 38, scale: 'dorian', seed: 3319, groove: 2, swing: 0.08, wave: 'sawtooth' },
-  { title: 'Coffin Dance Checkout', bpm: 144, root: 45, scale: 'pentatonic', seed: 4421, groove: 3, swing: 0.02, wave: 'square' },
-  { title: 'Keyboard Cat Overtime', bpm: 112, root: 41, scale: 'major', seed: 5531, groove: 4, swing: 0.16, wave: 'triangle' },
-  { title: 'Nyan Cat Night Shift', bpm: 168, root: 36, scale: 'minor', seed: 6653, groove: 2, swing: 0.05, wave: 'sawtooth' },
-  { title: 'Doge to the Moon', bpm: 104, root: 46, scale: 'major', seed: 7757, groove: 1, swing: 0.14, wave: 'square' },
-  { title: 'Harlem Shake Stockroom', bpm: 150, root: 40, scale: 'whole', seed: 8861, groove: 3, swing: 0.03, wave: 'triangle' },
-  { title: 'Trololo Manager Mix', bpm: 118, root: 43, scale: 'dorian', seed: 9973, groove: 0, swing: 0.11, wave: 'sawtooth' },
-  { title: 'Gangnam Pump Style', bpm: 126, root: 37, scale: 'pentatonic', seed: 10177, groove: 4, swing: 0.17, wave: 'square' },
-  { title: 'Bonk Before Breakfast', bpm: 172, root: 42, scale: 'minor', seed: 11287, groove: 2, swing: 0.01, wave: 'triangle' },
-  { title: 'Emergency Cheese Meeting', bpm: 92, root: 49, scale: 'major', seed: 12391, groove: 1, swing: 0.13, wave: 'sine' },
-  { title: 'Soda Machine Prophecy', bpm: 138, root: 39, scale: 'whole', seed: 13513, groove: 3, swing: 0.06, wave: 'square' },
-  { title: 'Bread On The Run', bpm: 154, root: 44, scale: 'dorian', seed: 14621, groove: 0, swing: 0.09, wave: 'sawtooth' },
-  { title: 'Unpaid Intern Disco', bpm: 122, root: 36, scale: 'pentatonic', seed: 15733, groove: 4, swing: 0.15, wave: 'triangle' },
-  { title: 'Cursed Loyalty Card', bpm: 108, root: 47, scale: 'minor', seed: 16843, groove: 1, swing: 0.07, wave: 'square' },
-  { title: 'Three AM Hotdog', bpm: 164, root: 41, scale: 'whole', seed: 17957, groove: 2, swing: 0.03, wave: 'sawtooth' },
-  { title: 'Pocket Full Of Croutons', bpm: 116, root: 45, scale: 'major', seed: 18061, groove: 0, swing: 0.18, wave: 'triangle' },
-  { title: 'Parking Lot Kazoo', bpm: 146, root: 38, scale: 'dorian', seed: 19181, groove: 3, swing: 0.1, wave: 'square' },
-  { title: 'Crab Rave Cashier', bpm: 134, root: 42, scale: 'pentatonic', seed: 20287, groove: 4, swing: 0.14, wave: 'sawtooth' },
-  { title: 'Freezer Door Philosophy', bpm: 88, root: 48, scale: 'minor', seed: 21391, groove: 1, swing: 0.05, wave: 'sine' },
-  { title: 'Pop Cat Turbo', bpm: 176, root: 35, scale: 'major', seed: 22501, groove: 2, swing: 0.02, wave: 'square' },
-  { title: 'Skibidi Snack Break', bpm: 128, root: 44, scale: 'whole', seed: 23609, groove: 3, swing: 0.12, wave: 'triangle' },
-  { title: 'Pedro Checkout Spin', bpm: 110, root: 39, scale: 'dorian', seed: 24733, groove: 0, swing: 0.16, wave: 'sawtooth' },
-  { title: 'Final Boss Sigma Walk', bpm: 160, root: 40, scale: 'pentatonic', seed: 25847, groove: 4, swing: 0.08, wave: 'square' },
+  { title: 'I Need a Hero', bpm: 150, root: 41, scale: 'minor', seed: 48151, groove: 4, swing: 0.08, wave: 'sawtooth' },
 ] as const);
 
 export const COUNTER_RADIO_TUNE_COUNT = COUNTER_RADIO_TUNES.length;

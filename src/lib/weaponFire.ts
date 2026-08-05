@@ -52,7 +52,11 @@ export function fireWeapon(
   const intersections: THREE.Intersection[] = [];
   const targets = shotTargets(scene, camera);
   const forward = shotDirection(camera, forwardDirection);
-  const start = shotStart.copy(camera.position).addScaledVector(forward, 0.82);
+  const held = camera.children.find((child) => child.userData.weaponKind === kind);
+  const muzzle = held?.getObjectByName('weapon-muzzle');
+  const start = muzzle
+    ? muzzle.getWorldPosition(shotStart)
+    : shotStart.copy(camera.position).addScaledVector(forward, 0.82);
   const shotDistance = kind === 'flamethrower' ? 6 : MAX_SHOT_DISTANCE;
   for (let pellet = 0; pellet < config.projectiles; pellet += 1) {
     const angle = pellet * 2.399;
@@ -149,6 +153,16 @@ function updateHeldWeapon(object: THREE.Object3D, delta: number) {
   const rifleBolt = object.getObjectByName('weapon-bolt');
   if (rifleBolt) {
     rifleBolt.position.x = Number(rifleBolt.userData.baseX) + actionMotion * 0.18;
+  }
+  const slide = object.getObjectByName('weapon-slide');
+  if (slide) {
+    slide.position.z = Number(slide.userData.baseZ) + actionMotion * 0.16;
+  }
+  const magazine = object.getObjectByName('weapon-magazine');
+  if (magazine) {
+    const baseY = Number(magazine.userData.baseY ?? magazine.position.y);
+    magazine.userData.baseY = baseY;
+    magazine.position.y = baseY - reload * 0.18;
   }
   const cylinder = object.getObjectByName('revolver-cylinder');
   if (cylinder) {

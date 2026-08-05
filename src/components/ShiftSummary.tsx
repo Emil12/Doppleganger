@@ -13,6 +13,12 @@ type ShiftSummaryProps = {
   onContinue: () => void;
 };
 
+const COMPLETION_MESSAGES: Partial<Record<GameDifficulty, string>> = {
+  easy: 'GREAT WORK — YOU KEPT THE STATION SAFE.',
+  hard: 'OUTSTANDING WORK — YOU MASTERED THE NIGHT.',
+  nightmare: 'INCREDIBLE WORK — YOU SURVIVED THE NIGHTMARE.',
+};
+
 export function ShiftSummary({
   shiftNumber,
   stats,
@@ -53,6 +59,9 @@ export function ShiftSummary({
                 : rewardAvailable ? `+${coinReward} COINS` : 'SIGN IN TO EARN COINS'}
             </strong>
           </div>
+        )}
+        {runComplete && COMPLETION_MESSAGES[mode] && (
+          <p className="shift-summary__praise">{COMPLETION_MESSAGES[mode]}</p>
         )}
         <button type="button" onClick={onContinue} disabled={rewardPending}>
           {runComplete

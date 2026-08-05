@@ -23,6 +23,7 @@ import {
   createMultiplayerSystem,
   type MultiplayerConnection,
 } from '../lib/multiplayerSystem';
+import { type ChatMessage } from '../lib/multiplayerProtocol';
 import { createWeaponAudio } from '../lib/weaponAudio';
 import {
   createNightmareAudio,
@@ -42,6 +43,11 @@ import {
   hasSeenFirstShiftTutorial,
   rememberFirstShiftTutorial,
 } from '../lib/firstShiftTutorial';
+import {
+  hasSeenFirstCorrectDecision,
+  rememberFirstCorrectDecision,
+  type CustomerDecisionFeedbackKind,
+} from '../lib/customerDecisionFeedback';
 import { createCustomerSystem, type CheckoutKind } from '../lib/customerSystem';
 import { type QueueDialogue as QueueDialogueState } from '../lib/customerDialogue';
 import { createDaylightCycle } from '../lib/daylightCycle';
@@ -49,14 +55,20 @@ import { createEntityCullingSystem } from '../lib/entityCulling';
 import {
   addGameCoins,
   buyGameClass,
+  buyGameGrenade,
+  buyGameMolotov,
   buyGameMedkit,
   EMPTY_GAME_ECONOMY,
   loadGameEconomy,
   type GameEconomy,
   selectGameClass,
   updateGameDisplayName,
+  useGameGrenade,
+  useGameMolotov,
   useGameMedkit,
 } from '../lib/gameEconomy';
+import { claimDailyReward } from '../lib/dailyRewards';
+import { createGrenadeSystem } from '../lib/grenadeSystem';
 import {
   difficultyMultiplier,
   loadGameSettings,
@@ -84,6 +96,7 @@ import {
 } from '../lib/staffDoor';
 import { AccountRequired } from './AccountRequired';
 import { DeathScreen } from './DeathScreen';
+import { CustomerDecisionFeedback } from './CustomerDecisionFeedback';
 import { FirstShiftTutorial } from './FirstShiftTutorial';
 import { GameHud } from './GameHud';
 import { InspectorExecution } from './InspectorExecution';
@@ -91,6 +104,7 @@ import { Jumpscare, type JumpscareKind } from './Jumpscare';
 import { MainMenu } from './MainMenu';
 import { MobileTouchControls } from './MobileTouchControls';
 import { MultiplayerStatus } from './MultiplayerStatus';
+import { MultiplayerChat } from './MultiplayerChat';
 import { NightmareOverlay } from './NightmareOverlay';
 import { QueueDialogue } from './QueueDialogue';
 import { ShiftSummary } from './ShiftSummary';
@@ -153,9 +167,12 @@ export function GasStationGame({
   const inspectorExecutingRef = useRef(false);
   const inspectorExecutionTimerRef = useRef<number | null>(null);
   const dialogueTimerRef = useRef<number | null>(null);
+  const decisionFeedbackTimerRef = useRef<number | null>(null);
+  const firstCorrectDecisionSeenRef = useRef(hasSeenFirstCorrectDecision());
   const menuOpenRef = useRef(!multiplayerRoom);
   const multiplayerRoomRef = useRef(multiplayerRoom);
   const multiplayerDownedRef = useRef(false);
+  const multiplayerSystemRef = useRef<ReturnType<typeof createMultiplayerSystem> | null>(null);
   const multiplayerRevivesRef = useRef(0);
   const economyRef = useRef<GameEconomy>(EMPTY_GAME_ECONOMY);
   const economyBusyRef = useRef(false);
@@ -163,6 +180,7 @@ export function GasStationGame({
   const nightmareRefusalsRef = useRef(0);
   const actionsRef = useRef<ReturnType<typeof createGameActions> | null>(null);
   const radioSystemRef = useRef<ReturnType<typeof createCounterRadioSystem> | null>(null);
+  const grenadeSystemRef = useRef<ReturnType<typeof createGrenadeSystem> | null>(null);
   const equipClassWeaponsRef = useRef<
     ((kinds: readonly [WeaponKind, WeaponKind?], startingAmmo?: StartingAmmo) => void) | null
   >(null);
@@ -174,6 +192,7 @@ export function GasStationGame({
   const [multiplayerPlayers, setMultiplayerPlayers] = useState(multiplayerRoom ? 1 : 0);
   const [multiplayerDowned, setMultiplayerDowned] = useState(false);
   const [multiplayerRevives, setMultiplayerRevives] = useState(0);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [nearDownedTeammate, setNearDownedTeammate] = useState<string | null>(null);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -197,6 +216,7 @@ export function GasStationGame({
   const [judgementPoints, setJudgementPoints] = useState(MAX_JUDGEMENT_POINTS);
   const [inspectorExecuting, setInspectorExecuting] = useState(false);
   const [queueDialogue, setQueueDialogue] = useState<QueueDialogueState | null>(null);
+  const [decisionFeedback, setDecisionFeedback] = useState<CustomerDecisionFeedbackKind | null>(null);
   const [economy, setEconomy] = useState(EMPTY_GAME_ECONOMY);
   const [economyBusy, setEconomyBusy] = useState(true);
   const [runComplete, setRunComplete] = useState(false);
@@ -243,6 +263,32 @@ export function GasStationGame({
     }
   }, [applyEconomy]);
 
+  const purchaseGrenade = useCallback(async () => {
+    if (economyBusyRef.current || economyRef.current.coins < 10) return;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      const nextEconomy = await buyGameGrenade();
+      if (nextEconomy) applyEconomy(nextEconomy);
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
+  const purchaseMolotov = useCallback(async () => {
+    if (economyBusyRef.current || economyRef.current.coins < 5) return;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      const nextEconomy = await buyGameMolotov();
+      if (nextEconomy) applyEconomy(nextEconomy);
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
   const purchaseClass = useCallback(async (playerClass: PlayerClassKind) => {
     if (economyBusyRef.current) return;
     economyBusyRef.current = true;
@@ -277,6 +323,20 @@ export function GasStationGame({
       const nextEconomy = await updateGameDisplayName(displayName);
       if (!nextEconomy) return false;
       applyEconomy(nextEconomy);
+      return true;
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
+  const collectDailyReward = useCallback(async () => {
+    if (economyBusyRef.current || !economyRef.current.signedIn) return false;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      if (!await claimDailyReward()) return false;
+      applyEconomy(await loadGameEconomy());
       return true;
     } finally {
       economyBusyRef.current = false;
@@ -336,6 +396,46 @@ export function GasStationGame({
     setHealth(healthRef.current);
   }, [consumePortableMedkit]);
 
+  const throwPortableGrenade = useCallback(async () => {
+    if (
+      !playingRef.current
+      || multiplayerDownedRef.current
+      || economyBusyRef.current
+      || economyRef.current.grenades < 1
+    ) return;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      const nextEconomy = await useGameGrenade();
+      if (!nextEconomy || !playingRef.current) return;
+      applyEconomy(nextEconomy);
+      grenadeSystemRef.current?.throwGrenade();
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
+  const throwPortableMolotov = useCallback(async () => {
+    if (
+      !playingRef.current
+      || multiplayerDownedRef.current
+      || economyBusyRef.current
+      || economyRef.current.molotovs < 1
+    ) return;
+    economyBusyRef.current = true;
+    setEconomyBusy(true);
+    try {
+      const nextEconomy = await useGameMolotov();
+      if (!nextEconomy || !playingRef.current) return;
+      applyEconomy(nextEconomy);
+      grenadeSystemRef.current?.throwMolotov();
+    } finally {
+      economyBusyRef.current = false;
+      setEconomyBusy(false);
+    }
+  }, [applyEconomy]);
+
   const setControl = useCallback((direction: Direction, pressed: boolean) => {
     if (!playingRef.current || inspectorExecutingRef.current || multiplayerDownedRef.current) return;
     pressedRef.current[direction] = pressed;
@@ -377,6 +477,10 @@ export function GasStationGame({
     setMultiplayerRevives(multiplayerRevivesRef.current);
     setMultiplayerDowned(false);
     setHealth(healthRef.current);
+  }, []);
+
+  const receiveChatMessage = useCallback((message: ChatMessage) => {
+    setChatMessages((current) => [...current, message].slice(-40));
   }, []);
 
   const startGame = useCallback(() => {
@@ -432,6 +536,17 @@ export function GasStationGame({
     saveGameSettings(nextSettings);
   }, []);
 
+  const showDecisionFeedback = useCallback((kind: CustomerDecisionFeedbackKind) => {
+    if (decisionFeedbackTimerRef.current !== null) {
+      window.clearTimeout(decisionFeedbackTimerRef.current);
+    }
+    setDecisionFeedback(kind);
+    decisionFeedbackTimerRef.current = window.setTimeout(() => {
+      decisionFeedbackTimerRef.current = null;
+      setDecisionFeedback(null);
+    }, 2_700);
+  }, []);
+
   const stopInspectorExecution = useCallback(() => {
     inspectorExecutingRef.current = false;
     setInspectorExecuting(false);
@@ -482,6 +597,7 @@ export function GasStationGame({
     stopInspectorExecution();
     setShiftSummary(summary);
     setQueueDialogue(null);
+    setDecisionFeedback(null);
     setPlaying(false);
   }, [applyEconomy, shiftNumber, stopInspectorExecution]);
 
@@ -750,7 +866,9 @@ export function GasStationGame({
         setMultiplayerStatus(status);
         setMultiplayerPlayers(playerCount);
       },
+      onChatMessage: receiveChatMessage,
     });
+    multiplayerSystemRef.current = multiplayer;
     if (multiplayerRoomRef.current) multiplayer.connect(multiplayerRoomRef.current);
     const entityCulling = createEntityCullingSystem(scene, camera);
     let previousTime = performance.now();
@@ -817,6 +935,31 @@ export function GasStationGame({
         shiftNumberRef.current,
       ),
     });
+    const grenadeSystem = createGrenadeSystem(scene, camera, (position) => {
+      customers.blastCustomers(position, 4.5, 12);
+      weaponAudio.fire('double_barrel');
+      const distance = position.distanceTo(camera.position);
+      if (distance < 3.5 && healthRef.current > 0) {
+        const blastDamage = Math.round(70 * (1 - distance / 3.5));
+        const damage = Math.min(blastDamage, healthRef.current);
+        healthRef.current -= damage;
+        runStatsRef.current.damageTaken += damage;
+        setHealth(healthRef.current);
+        if (healthRef.current === 0) finishRun();
+      }
+      navigator.vibrate?.([90, 35, 140]);
+    }, (position) => {
+      customers.blastCustomers(position, 3, 1);
+      const distance = position.distanceTo(camera.position);
+      if (distance < 2.5 && healthRef.current > 0) {
+        const damage = Math.min(8, healthRef.current);
+        healthRef.current -= damage;
+        runStatsRef.current.damageTaken += damage;
+        setHealth(healthRef.current);
+        if (healthRef.current === 0) finishRun();
+      }
+    });
+    grenadeSystemRef.current = grenadeSystem;
     const daylight = createDaylightCycle(scene);
     const radio = createCounterRadioSystem({
       scene,
@@ -879,8 +1022,16 @@ export function GasStationGame({
       () => {
         shiftStatsRef.current.purchases += 1;
         runStatsRef.current.purchases += 1;
+        if (!firstCorrectDecisionSeenRef.current) {
+          firstCorrectDecisionSeenRef.current = true;
+          rememberFirstCorrectDecision();
+          showDecisionFeedback('first-correct');
+        }
       },
-      queueJumpscare,
+      () => {
+        showDecisionFeedback('incorrect');
+        queueJumpscare();
+      },
       (objects) => {
         fuelPumps.hit(objects);
         breakableGlass.hit(objects);
@@ -933,6 +1084,8 @@ export function GasStationGame({
         if (playingRef.current && !multiplayerDownedRef.current) actions.reload();
       },
       onUseMedkit: usePortableMedkit,
+      onThrowGrenade: throwPortableGrenade,
+      onThrowMolotov: throwPortableMolotov,
       onSelectSlot: (slot) => {
         if (playingRef.current && !multiplayerDownedRef.current) actions.selectSlot(slot);
       },
@@ -956,6 +1109,7 @@ export function GasStationGame({
       actions.reset();
       radio.reset();
       fuelPumps.reset();
+      grenadeSystem.reset();
       breakableGlass.reset();
     };
     const observer = new ResizeObserver(resize);
@@ -1023,6 +1177,7 @@ export function GasStationGame({
       });
       updateAtmosphere(scene, delta);
       updateWeaponEffects(scene, delta);
+      grenadeSystem.update(delta);
       fuelPumps.update(delta);
       breakableGlass.update(delta);
       updateStaffDoors(scene, delta);
@@ -1062,8 +1217,11 @@ export function GasStationGame({
       observer.disconnect();
       detachInput();
       actions.dispose();
+      grenadeSystem.dispose();
+      if (grenadeSystemRef.current === grenadeSystem) grenadeSystemRef.current = null;
       playerAvatar.dispose();
       multiplayer.dispose();
+      if (multiplayerSystemRef.current === multiplayer) multiplayerSystemRef.current = null;
       entityCulling.dispose();
       footsteps.dispose();
       weaponAudio.dispose();
@@ -1084,6 +1242,9 @@ export function GasStationGame({
         window.clearTimeout(inspectorExecutionTimerRef.current);
       }
       if (dialogueTimerRef.current !== null) window.clearTimeout(dialogueTimerRef.current);
+      if (decisionFeedbackTimerRef.current !== null) {
+        window.clearTimeout(decisionFeedbackTimerRef.current);
+      }
       resetWorldRef.current = null;
       equipClassWeaponsRef.current = null;
       if (actionsRef.current === actions) actionsRef.current = null;
@@ -1097,8 +1258,12 @@ export function GasStationGame({
     handleMultiplayerDamage,
     handleMultiplayerRevive,
     queueJumpscare,
+    receiveChatMessage,
     setControl,
+    showDecisionFeedback,
     startGame,
+    throwPortableGrenade,
+    throwPortableMolotov,
     usePortableMedkit,
   ]);
 
@@ -1117,6 +1282,8 @@ export function GasStationGame({
           maxHealth={maxHealth}
           judgementPoints={judgementPoints}
           medkits={economy.medkits + classMedkits}
+          grenades={economy.grenades}
+          molotovs={economy.molotovs}
           weapon={weapon.weapon}
           activeSlot={weapon.activeSlot}
           ammo={weapon.ammo}
@@ -1157,14 +1324,22 @@ export function GasStationGame({
         {nightmareActive && <NightmareOverlay bloodEnabled={settings.bloodEnabled} />}
         {inspectorExecuting && <InspectorExecution />}
         {queueDialogue && <QueueDialogue dialogue={queueDialogue} />}
+        {decisionFeedback && <CustomerDecisionFeedback kind={decisionFeedback} />}
         {tutorialOpen && <FirstShiftTutorial onComplete={completeTutorial} />}
         {multiplayerRoom && (
-          <MultiplayerStatus
-            code={multiplayerRoom.code}
-            playerCount={multiplayerPlayers}
-            status={multiplayerStatus}
-            onLeave={leaveMultiplayer}
-          />
+          <>
+            <MultiplayerStatus
+              code={multiplayerRoom.code}
+              playerCount={multiplayerPlayers}
+              status={multiplayerStatus}
+              onLeave={leaveMultiplayer}
+            />
+            <MultiplayerChat
+              connected={multiplayerStatus === 'connected'}
+              messages={chatMessages}
+              onSend={(text) => multiplayerSystemRef.current?.sendChat(text) ?? false}
+            />
+          </>
         )}
       </div>
       {menuOpen && (
@@ -1174,9 +1349,12 @@ export function GasStationGame({
           economyBusy={economyBusy}
           onSettingsChange={updateSettings}
           onBuyMedkit={() => { void purchaseMedkit(); }}
+          onBuyGrenade={() => { void purchaseGrenade(); }}
+          onBuyMolotov={() => { void purchaseMolotov(); }}
           onBuyClass={(playerClass) => { void purchaseClass(playerClass); }}
           onSelectClass={(playerClass) => { void chooseClass(playerClass); }}
           onNicknameChange={changeNickname}
+          onClaimDailyReward={collectDailyReward}
           onStart={startFromMenu}
           freePlayRemainingMs={
             economy.signedIn && economy.freePlayHours <= 50 ? null : trialRemainingMs
@@ -1187,6 +1365,10 @@ export function GasStationGame({
       {playing && !inspectorExecuting && !shiftSummary && !deathSummary && (
         <MobileTouchControls
           onStart={startGame}
+          grenades={economy.grenades}
+          onThrowGrenade={() => { void throwPortableGrenade(); }}
+          molotovs={economy.molotovs}
+          onThrowMolotov={() => { void throwPortableMolotov(); }}
           onMove={({ x, y }) => {
             const deadZone = 0.22;
             setControl('up', y < -deadZone);

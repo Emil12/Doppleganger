@@ -17,6 +17,7 @@ function mesh(
 ) {
   const object = new THREE.Mesh(geometry, material);
   object.position.set(...position);
+  object.castShadow = true;
   group.add(object);
   return object;
 }

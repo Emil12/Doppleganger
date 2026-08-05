@@ -26,9 +26,16 @@ export async function createMultiplayerSession(code: string) {
   if (!user || roomCode.length !== ROOM_CODE_LENGTH) return null;
   const fallbackName = `PLAYER-${user.id.slice(0, 4).toUpperCase()}`;
   const emailName = user.email?.split('@')[0].trim().slice(0, 16);
+  const { data: profile } = await supabase
+    .from('game_profiles')
+    .select('display_name')
+    .eq('user_id', user.id)
+    .maybeSingle();
   return {
     code: roomCode,
     playerId: user.id,
-    playerName: emailName || fallbackName,
+    playerName: typeof profile?.display_name === 'string'
+      ? profile.display_name
+      : emailName || fallbackName,
   } satisfies MultiplayerRoomSession;
 }
